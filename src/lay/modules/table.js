@@ -788,9 +788,10 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
           ,key = options.index + '-' + item3.key
           ,content = item1[field];
           
-		  if (options.escape) {
-			  content = util.escape(content);
-		  }
+          // 添加xss过滤
+          if (options.escape) {
+            content = util.escape(content);
+          }
 
           if(content === undefined || content === null) content = '';
           if(item3.colGroup) return;
