@@ -284,7 +284,8 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
     //高度铺满：full-差距值
     if(options.height && /^full-\d+$/.test(options.height)){
       that.fullHeightGap = options.height.split('-')[1];
-      options.height = _WIN.height() - that.fullHeightGap;
+      // 减去页面固定高度和动态高度
+      options.height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement);
     }
     
     //初始化一些参数
@@ -777,6 +778,8 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
         var tds = [], tds_fixed = [], tds_fixed_r = []
         ,numbers = i1 + options.limit*(curr - 1) + 1; //序号
         
+        var jsonItem1 = JSON.stringify(item1);
+
         if(item1.length === 0) return;
         
         if(!sort){
@@ -787,13 +790,14 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
           var field = item3.field || i3
           ,key = options.index + '-' + item3.key
           ,content = item1[field];
-          
+
+          if(content === undefined || content === null) content = '';
+
           // 添加xss过滤
           if (options.escape) {
             content = util.escape(content);
           }
 
-          if(content === undefined || content === null) content = '';
           if(item3.colGroup) return;
           
           //td内容
@@ -825,25 +829,37 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
               //渲染不同风格的列
               switch(item3.type){
                 case 'checkbox':
-                  return '<input type="checkbox" name="layTableCheckbox" lay-skin="primary" '+ function(){
+                  return '<input ' + function(){
+                    if(item3.show && item3.show(tplData) == false) {
+                      data[i1].layuiCheckShowMark = true;
+                      return ' type="hidden" ';
+                    } else {
+                      return ' type="checkbox" name="layTableCheckbox"  ';
+                    }
+                  }() +' lay-skin="primary" '+ function(){
                     //如果是全选
                     if(item3[checkName]){
                       item1[checkName] = item3[checkName];
                       return item3[checkName] ? 'checked' : '';
                     }
                     return tplData[checkName] ? 'checked' : '';
-                  }() +'>';
-                break;
+                  }() + '>';
+                  break;
                 case 'radio':
                   if(tplData[checkName]){
                     thisCheckedRowIndex = i1;
                   }
                   return '<input type="radio" name="layTableRadio_'+ options.index +'" '
-                  + (tplData[checkName] ? 'checked' : '') +' lay-type="layTableRadio">';
-                break;
+                      + (tplData[checkName] ? 'checked' : '') +' lay-type="layTableRadio"' + function(){
+                        if(item3.show && item3.show(tplData) == false) {
+                          return ' lay-ignore style="visibility:hidden;" ';
+                        }
+                        return '';
+                      }() + '>';
+                  break;
                 case 'numbers':
                   return numbers;
-                break;
+                  break;
               };
               
               //解析工具列模板
@@ -1174,7 +1190,8 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
     ,height = options.height, bodyHeight;
 
     if(that.fullHeightGap){
-      height = _WIN.height() - that.fullHeightGap;
+      // 减去页面固定高度和动态高度
+      height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement);
       if(height < 135) height = 135;
       that.elem.css('height', height);
     }
@@ -1530,7 +1547,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
       if(isAll){
         childs.each(function(i, item){
           item.checked = checked;
-          that.setCheckData(i, checked);
+          that.setCheckData($(item).parents('tr').eq(0).data('index'), checked);
         });
         that.syncCheckAll();
         that.renderForm('checkbox');
@@ -1875,11 +1892,15 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
     var nums = 0
     ,invalidNum = 0
     ,arr = []
-    ,data = table.cache[id] || [];
+    ,data = table.cache[id] || [], layuiCheckShowMark = 0;
     //计算全选个数
     layui.each(data, function(i, item){
       if(item.constructor === Array){
         invalidNum++; //无效数据，或已删除的
+        return;
+      }
+      if(item['layuiCheckShowMark']){
+        layuiCheckShowMark++;
         return;
       }
       if(item[table.config.checkName]){
@@ -1889,7 +1910,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
     });
     return {
       data: arr //选中的数据
-      ,isAll: data.length ? (nums === (data.length - invalidNum)) : false //是否全选
+      ,isAll: data.length ? (nums === (data.length - invalidNum - layuiCheckShowMark)) : false //是否全选
     };
   };
   
@@ -1993,6 +2014,27 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
   
   //自动完成渲染
   table.init();
+
+  /**
+   * 元素由于浏览器窗口尺寸变化导致的的元素高度变化的计算
+   * @param heightChangeElement，多个元素以逗号隔开
+   * @returns {number}
+   */
+  function heightChangeElementFunc(heightChangeElement){
+    if(!heightChangeElement){
+      return 0;
+    }
+    var heightChangeElements = heightChangeElement.split(",");
+    var height = 0;
+    var elementHeight = 0;
+    for(var i = 0; i < heightChangeElements.length; i++){
+      elementHeight = $(heightChangeElements[i]).height();
+      if(elementHeight !== null && elementHeight !== undefined && elementHeight != ""){
+        height += elementHeight
+      }
+    }
+    return height;
+  }
   
   exports(MOD_NAME, table);
 });

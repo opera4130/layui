@@ -56,8 +56,7 @@ var sourceFileMap = [
     'src/lay/modules/upload.js',
     'src/lay/modules/util.js',
     'src/lay/modules/mobile/zepto.js',
-    'src/lay/modules/mobile/layer-mobile.js',
-    'src/lay/modules/mobile/upload-mobile.js'
+    'src/lay/modules/mobile/layer-mobile.js'
 ];
 
 /**
