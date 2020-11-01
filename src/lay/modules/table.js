@@ -242,7 +242,8 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
     ,autoSort: true //是否前端自动排序。如果否，则需自主排序（通常为服务端处理好排序）
     ,text: {
       none: '无数据'
-    }
+    },
+	templet:true
   };
 
   //表格渲染
@@ -285,7 +286,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
     if(options.height && /^full-\d+$/.test(options.height)){
       that.fullHeightGap = options.height.split('-')[1];
       // 减去页面固定高度和动态高度
-      options.height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement);
+      options.height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement, that);
     }
     
     //初始化一些参数
@@ -805,7 +806,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
             var attr = [];
             if(item3.edit) attr.push('data-edit="'+ item3.edit +'"'); //是否允许单元格编辑
             if(item3.align) attr.push('align="'+ item3.align +'"'); //对齐方式
-            if(item3.templet) attr.push('data-content="'+ content +'"'); //自定义模板
+            if(options.templet && item3.templet) attr.push('data-content="'+ content +'"'); //自定义模板
             if(item3.toolbar) attr.push('data-off="true"'); //行工具列关闭单元格事件
             if(item3.event) attr.push('lay-event="'+ item3.event +'"'); //自定义事件
             if(item3.style) attr.push('style="'+ item3.style +'"'); //自定义样式
@@ -1173,9 +1174,17 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
   //获取cssRule
   Class.prototype.getCssRule = function(key, callback){
     var that = this
-    ,style = that.elem.find('style')[0]
-    ,sheet = style.sheet || style.styleSheet || {}
-    ,rules = sheet.cssRules || sheet.rules;
+    ,style = that.elem.find('style')[0];
+	if (style === undefined || style === null || style === '') {
+		return;
+	}
+    var sheet = style.sheet || style.styleSheet || {};
+	if (sheet === undefined || sheet === null || sheet === '') {
+		return;
+	}
+    var rules = sheet.cssRules || sheet.rules;
+	if (rules === undefined || rules === null || rules === '') {
+	}
     layui.each(rules, function(i, item){
       if(item.selectorText === ('.laytable-cell-'+ key)){
         return callback(item), true;
@@ -1191,7 +1200,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
 
     if(that.fullHeightGap){
       // 减去页面固定高度和动态高度
-      height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement);
+      height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement, that);
       if(height < 135) height = 135;
       that.elem.css('height', height);
     }
@@ -2017,23 +2026,18 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
 
   /**
    * 元素由于浏览器窗口尺寸变化导致的的元素高度变化的计算
-   * @param heightChangeElement，多个元素以逗号隔开
+   * @param callback
    * @returns {number}
    */
-  function heightChangeElementFunc(heightChangeElement){
-    if(!heightChangeElement){
+  function heightChangeElementFunc(callback, that){
+    if(!callback){
       return 0;
     }
-    var heightChangeElements = heightChangeElement.split(",");
-    var height = 0;
-    var elementHeight = 0;
-    for(var i = 0; i < heightChangeElements.length; i++){
-      elementHeight = $(heightChangeElements[i]).height();
-      if(elementHeight !== null && elementHeight !== undefined && elementHeight != ""){
-        height += elementHeight
-      }
-    }
-    return height;
+    if (typeof callback === "function") {
+		return callback(that);
+	} else {
+		return $(callback).height();
+	}
   }
   
   exports(MOD_NAME, table);

@@ -185,18 +185,18 @@ gulp.task('mv', task.mv);
 gulp.task('release', task.release);
 
 //发行版 gulp
-gulp.task('default', ['clearRelease'], function(){
+gulp.task('default', gulp.series('clearRelease', function(){
   for(var key in task){
     task[key]('open');
   }
-});
+}));
 
 //完整任务 gulp all
-gulp.task('all', ['clear'], function(){ //过滤 layim：gulp all --open、rc 版：gulp all --rc
+gulp.task('all', gulp.series('clear', function(){ //过滤 layim：gulp all --open、rc 版：gulp all --rc
   for(var key in task){
     task[key]();
   }
-});
+}));
 
 //打包 layer 独立版
 gulp.task('layer', function(){
