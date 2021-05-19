@@ -126,8 +126,11 @@ layui.use('laydate', function(laydate){
     //,lang: 'en'
     //,theme: 'grid'
     ,range: true //开启日期范围，默认使用“-”分割
-    ,min: 0
-    ,max: 7
+
+    //,min: '1949-10-1'
+    //,max: '2021-5-9'
+    //,value: '2021-05-09 12:06:09'
+
     //,value: '2021-05-08 - 2021-03-27'
     ,done: function(value, date, endDate){
       console.log(value, date, endDate);
@@ -177,8 +180,10 @@ layui.use('laydate', function(laydate){
   //年月选择器
   laydate.render({
     elem: '#test4'
-    ,type: 'time'
-    ,range: true 
+
+    ,type: 'month'
+    ,range: true
+
     ,trigger: 'click'
     //,max: -30
     ,done: function(value, date, endDate){
