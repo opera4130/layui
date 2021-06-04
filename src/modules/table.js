@@ -806,12 +806,6 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
           ,content = item1[field];
 
           if(content === undefined || content === null) content = '';
-
-          // 添加xss过滤
-          if (options.escape) {
-            content = util.escape(content);
-          }
-
           if(item3.colGroup) return;
 
           //td内容
@@ -819,7 +813,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
             var attr = [];
             if(item3.edit) attr.push('data-edit="'+ item3.edit +'"'); //是否允许单元格编辑
             if(item3.align) attr.push('align="'+ item3.align +'"'); //对齐方式
-            if(options.templet && item3.templet) attr.push('data-content="'+ content +'"'); //自定义模板
+            if(options.templet && item3.templet) attr.push('data-content="'+ (util.escape ? util.escape(content) : content) +'"'); //自定义模板
             if(item3.toolbar) attr.push('data-off="true"'); //行工具列关闭单元格事件
             if(item3.event) attr.push('lay-event="'+ item3.event +'"'); //自定义事件
             if(item3.style) attr.push('style="'+ item3.style +'"'); //自定义样式
