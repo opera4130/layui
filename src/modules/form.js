@@ -138,12 +138,12 @@ layui.define('layer', function(exports){
   };
   
   //表单控件渲染
-  Form.prototype.render = function(type, filter){
+  Form.prototype.render = function(type, filter, element){
     var that = this
     ,options = that.config
     ,elemForm = $(ELEM + function(){
       return filter ? ('[lay-filter="' + filter +'"]') : '';
-    }())
+    }() + function(){return element ? element: '';}())
     ,items = {
       //输入框
       input: function(){
@@ -729,6 +729,9 @@ layui.define('layer', function(exports){
     var filter = $(this).attr('lay-filter');
     setTimeout(function(){
       form.render(null, filter);
+      if (!common.isEmpty(layui.multiSelect)) {
+			layui.multiSelect.render();
+		}
     }, 50);
   });
   
