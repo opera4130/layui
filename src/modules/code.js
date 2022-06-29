@@ -1,16 +1,20 @@
-
 /**
- * code 代码修饰器
- * MIT Licensed 
+ * code 
+ * 代码区简易修饰
  */
  
-layui.define('jquery', function(exports){
+layui.define(['util'], function(exports){
   "use strict";
   
   var $ = layui.$;
+  var util = layui.util;
   
   exports('code', function(options){
     var elems = [];
+    var trim = function(str){
+      return $.trim(str).replace(/^\n|\n$/, '');
+    }
+
     options = options || {};
     options.elem = $(options.elem||'.layui-code');
     options.lang = 'lang' in options ? options.lang : 'code';
@@ -20,18 +24,21 @@ layui.define('jquery', function(exports){
     });
     
     layui.each(elems.reverse(), function(index, item){
-      var othis = $(item), html = othis.html();
+      var othis = $(item);
+      var html = trim(othis.html());
+      var about = othis.attr('lay-about') || options.about || (
+        othis.attr('lay-lang') || options.lang
+      ) || '';
       
-      //转义HTML标签
+      // 转义 HTML 标签
       if(othis.attr('lay-encode') || options.encode){
-        html = html.replace(/&(?!#?[a-zA-Z0-9]+;)/g, '&amp;')
-        .replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/'/g, '&#39;').replace(/"/g, '&quot;')
+        html = util.escape(html);
       }
       
       othis.html('<ol class="layui-code-ol"><li>' + html.replace(/[\r\t\n]+/g, '</li><li>') + '</li></ol>')
       
       if(!othis.find('>.layui-code-h3')[0]){
-        othis.prepend('<h3 class="layui-code-h3">'+ (othis.attr('lay-title')||options.title||'&lt;/&gt;') + '<a href="javascript:;">'+ (othis.attr('lay-lang')||options.lang||'') +'</a>' + '</h3>');
+        othis.prepend('<h3 class="layui-code-h3">'+ (othis.attr('lay-title')||options.title||'&lt;/&gt;') + '<a href="javascript:;">'+ about +'</a>' + '</h3>');
       }
       
       var ol = othis.find('>.layui-code-ol');
