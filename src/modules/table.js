@@ -1351,7 +1351,7 @@ layui.define(['laytpl', 'laypage', 'layer', 'form', 'util'], function(exports){
     
     if(!checkAllElem[0]) return;
 
-    if(table.checkStatus(that.key).isAll){
+    if(table.checkStatus(that.key).isAll && table.checkStatus(that.key).data.length > 0){
       if(!checkAllElem[0].checked){
         checkAllElem.prop('checked', true);
         that.renderForm('checkbox');
