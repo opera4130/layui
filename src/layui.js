@@ -15,7 +15,7 @@
   }
 
   ,Layui = function(){
-    this.v = '2.7.2'; // layui 版本号
+    this.v = '2.7.4'; // layui 版本号
   }
   
   //识别预先可能定义的指定全局对象
@@ -470,14 +470,14 @@
     return data;
   };
 
-  //本地持久性存储
+  // 本地持久存储
   Layui.prototype.data = function(table, settings, storage){
     table = table || 'layui';
     storage = storage || localStorage;
     
     if(!win.JSON || !win.JSON.parse) return;
     
-    //如果settings为null，则删除表
+    // 如果 settings 为 null，则删除表
     if(settings === null){
       return delete storage[table];
     }
@@ -499,7 +499,7 @@
     return settings.key ? data[settings.key] : data;
   };
   
-  //本地会话性存储
+  // 本地临时存储
   Layui.prototype.sessionData = function(table, settings){
     return this.data(table, settings, sessionStorage);
   }

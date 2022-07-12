@@ -670,9 +670,10 @@ layui.define('layer', function(exports){
 
   // elem 即要验证的区域表单选择器 -  return true or false
   Form.prototype.validate = function(elem){
-    var stop = null; //验证不通过状态
-    var verify = form.config.verify; //验证规则
-    var DANGER = 'layui-form-danger'; //警示样式
+    var that = this;
+    var stop = null; // 验证不通过状态
+    var verify = form.config.verify; // 验证规则
+    var DANGER = 'layui-form-danger'; // 警示样式
 
     elem = $(elem);
 
@@ -680,41 +681,49 @@ layui.define('layer', function(exports){
     if(!elem[0]) return !0;
 
     // 若节点不存在特定属性，则查找容器内有待验证的子节点
-    if(!elem.attr('lay-verify')){
-      elem = elem.find('*[lay-verify]');
+    if(elem.attr('lay-verify') === undefined){
+      // 若校验的是一个不带验证规则的容器，校验内部的 lay-verify 节点
+      if (that.validate(elem.find('*[lay-verify]')) === false) {
+        return false;
+      }
     }
 
-    //开始校验
+    // 开始校验
     layui.each(elem, function(_, item){
       var othis = $(this);
       var verifyStr = othis.attr('lay-verify') || '';
       var vers = verifyStr.split('|');
-      var verType = othis.attr('lay-verType'); //提示方式
+      var verType = othis.attr('lay-verType'); // 提示方式
       var value = othis.val();
 
-      othis.removeClass(DANGER); //移除警示样式
+      othis.removeClass(DANGER); // 移除警示样式
       
-      //遍历元素绑定的验证规则
+      // 遍历元素绑定的验证规则
       layui.each(vers, function(_, thisVer){
-        var isTrue //是否命中校验
-        ,errorText = '' //错误提示文本
-        ,isFn = typeof verify[thisVer] === 'function';
+        var isTrue; // 是否命中校验
+        var errorText = ''; // 错误提示文本
+        var rule = verify[thisVer]; // 获取校验规则
         
-        //匹配验证规则
-        if(verify[thisVer]){
-          var isTrue = isFn ? errorText = verify[thisVer](value, item) : !verify[thisVer][0].test(value)
-          //是否属于美化替换后的表单元素
-          ,isForm2Elem = item.tagName.toLowerCase() === 'select' || /^checkbox|radio$/.test(item.type);
+        // 匹配验证规则
+        if(rule){
+          var isTrue = typeof rule === 'function' 
+            ? errorText = rule(value, item) 
+          : !rule[0].test(value);
           
-          errorText = errorText || verify[thisVer][1];
+          // 是否属于美化替换后的表单元素
+          var isForm2Elem = item.tagName.toLowerCase() === 'select' || (
+            /^checkbox|radio$/.test(item.type)
+          );
+          
+          errorText = errorText || rule[1];
           
           if(thisVer === 'required'){
             errorText = othis.attr('lay-reqText') || errorText;
           }
           
-          //如果是必填项或者非空命中校验，则阻止提交，弹出提示
+          // 若为必填项或者非空命中校验，则阻止提交，弹出提示
           if(isTrue){
-            //提示层风格
+            // 提示层风格
             if(verType === 'tips'){
               layer.tips(errorText, function(){
                 if(typeof othis.attr('lay-ignore') !== 'string'){
@@ -727,7 +736,7 @@ layui.define('layer', function(exports){
             } else if(verType === 'alert') {
               layer.alert(errorText, {title: '提示', shadeClose: true});
             } 
-            //如果返回的为字符或数字，则自动弹出默认提示框；否则由 verify 方法中处理提示
+            // 若返回的为字符或数字，则自动弹出默认提示框；否则由 verify 方法中处理提示
             else if(/\bstring|number\b/.test(typeof errorText)){ 
               layer.msg(errorText, {icon: 5, shift: 6});
             }
@@ -736,33 +745,17 @@ layui.define('layer', function(exports){
               (isForm2Elem ? othis.next().find('input') : item).focus();
             }, 7);
             
-            /*
-            // 非移动设备自动定位焦点
-            if(!device.mobile){
-              setTimeout(function(){
-                (isForm2Elem ? othis.next().find('input') : item).focus();
-              }, 7);
-            } else { // 移动设备定位
-              $dom.scrollTop(function(){
-                try {
-                  return (isForm2Elem ? othis.next() : othis).focus().offset().top - 15
-                } catch(e){
-                  return 0;
-                }
-              }());
-            }
-            */
-            
             othis.addClass(DANGER);
             return stop = true;
           }
         }
       });
+
       if(stop) return stop;
     });
 
     return !stop;
-  }
+  };
 
   // 提交表单并校验
   var submit = Form.prototype.submit = function(filter, callback){

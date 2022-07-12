@@ -63,10 +63,6 @@
   <input type="checkbox" name="" title="锁定" checked>
 </script>
 
-<script type="text/html" id="LAY_table_tpl_email">
-  <span {{# if(!d.activate){ }}style="color:#999"{{# } }}>{{ d.email }}</span>
-</script>
-
 <script type="text/html" id="pagebarDemo">
   <div class="layui-btn-container">
     <button class="layui-btn layui-btn-sm" lay-event="footerDemoBtn1">底部按钮1</button>
@@ -134,7 +130,7 @@ layui.use(['table', 'dropdown'], function(){
     ].join('')
     //,className: '.demo-table-view'
 
-    //,size: 'sm'
+    //,size: 'lg'
     //,skin: 'line'
     //,loading: false
 
@@ -151,12 +147,13 @@ layui.use(['table', 'dropdown'], function(){
       ,icon: 'layui-icon-tips'
     }]
     //,escape: false
+    ,editTrigger: 'dblclick'
     ,cols: !1 ? test_cols : [[
       {type: 'checkbox', fixed: 'left'}
       //,{type: 'numbers', fixed: 'left'}
       ,{field:'id', title:'ID', width:80, fixed: 'left', unresize: true, sort: true, totalRowText: '合计：'}
       ,{field:'username', title:'用户名', width:120, edit: 'text', templet: '#usernameTpl'}
-      ,{field:'email', title:'邮箱 <i class="layui-icon layui-icon-email"></i>', hide: 0, width:150, edit: 'text', templet: function(d){
+      ,{field:'email', minWidth: 160, title:'邮箱 <i class="layui-icon layui-icon-email"></i>', hide: 0, edit: 'text', templet: function(d){
         return '<em>'+ layui.util.escape(d.email) +'</em>'
       }}
       ,{field:'sex', title:'性别', width:80, edit: 'text', sort: true}
@@ -166,7 +163,7 @@ layui.use(['table', 'dropdown'], function(){
         return td.find('select').val();
       }}
       ,{field:'sign', title:'签名', minWidth: 200, style:'color: #5FB878', edit: 'textarea'}
-      ,{field: 'experience', title: '积分', width: 100, sort: true, align:'center', totalRow: !1 ? '{{=d.LAY_COL.field}}' : '{{= d.TOTAL_NUMS }} 分 😊', templet: '<div><a href="" class="layui-table-link">{{ d.experience }}</a> 分</div>'}
+      ,{field: 'experience', title: '积分', width: 100, sort: true, align:'center', totalRow: !1 ? true : '{{= d.TOTAL_NUMS }} 分 😊', templet: '<div><a href="" class="layui-table-link">{{= d[d.LAY_COL.field] }}</a> 分</div>'}
       ,{field:'ip', title:'IP', width: 120, align: 'right'}
       ,{field:'checkin', title:'打卡', width: 100, sort: true, totalRow: '{{= parseInt(d.TOTAL_NUMS) }} 次'}
       ,{field:'joinTime', title:'加入时间', width: 120}
@@ -174,7 +171,7 @@ layui.use(['table', 'dropdown'], function(){
     ]]
     
     //,autoSort: false // 禁用前端自动排序，由服务的完成排序
-    ,initSort11111: { // 初始排序状态
+    ,initSort111: { // 初始排序状态
       field: 'experience' //排序字段，对应 cols 设定的各字段名
       ,type: 'desc' //排序方式  asc: 升序、desc: 降序、null: 默认排序
     }
@@ -185,6 +182,10 @@ layui.use(['table', 'dropdown'], function(){
       ,token: '初始 token'
       ,key: 'experience'
       ,order: 'asc'
+    }
+    ,before: function(options){
+      options.where.AAAAA = 123;
+      //console.log(options)
     }
     ,done: function(res, curr, count){
       var id = this.id;
@@ -252,7 +253,7 @@ layui.use(['table', 'dropdown'], function(){
             break;
             case 'reloadData':
               // 数据重载 - 参数重置
-              var isnt3 = table.reloadData('test', {
+              table.reloadData('test', {
                 where: {
                   abc: '123456'
                   //,test: '新的 test2'
@@ -260,10 +261,10 @@ layui.use(['table', 'dropdown'], function(){
                 }
                 ,height: 2000 // 测试无效参数
                 //,url: '404'
-                ,elem: null
-                ,page: {curr: 5, limit: 20}
+                //,elem: null
+                //,page: {curr: 5, limit: 20}
+                ,scrollPos: 'fixed' // 保持滚动条位置不变
               });
-              console.log(isnt3.config);
             break;
             case 'reloadData-deep':
               // 数据重载 - 参数叠加
@@ -404,7 +405,15 @@ layui.use(['table', 'dropdown'], function(){
       }, function(value, index){
         obj.update({
           email: value
+        }, true); // 参数 true 为新版新增功能，详见文档
+
+        /*
+        // 上述 obj.update() 只是在前端临时更新数据视图
+        // 在实际业务中，当发送修改请求成功后，可再执行 reloadData 来重载数据
+        table.reloadData('test', {
+          scrollPos: 'fixed' // 保持滚动条位置不变
         });
+        */
         layer.close(index);
       });
     }
@@ -440,7 +449,7 @@ layui.use(['table', 'dropdown'], function(){
 
     var update = {};
     update[field] = value;
-    obj.update(update);
+    obj.update(update, true); // 参数 true 为新版新增功能，详见文档
   });
 });
 </script>

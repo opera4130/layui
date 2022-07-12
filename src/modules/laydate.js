@@ -121,6 +121,7 @@
     ,position: null //控件定位方式定位, 默认absolute，支持：fixed/absolute/static
     ,calendar: false //是否开启公历重要节日，仅支持中文版
     ,mark: {} //日期备注，如重要事件或活动标记
+    ,holidays: null // 标注法定节假日或补假上班
     ,zIndex: null //控件层叠顺序
     ,done: null //控件选择完毕后的回调，点击清空/现在/确定也均会触发
     ,change: null //日期时间改变后的回调
@@ -529,6 +530,7 @@
         //delete options.dateTime;
         //delete that.endDate;
         delete laydate.thisId;
+        typeof options.close === 'function' && options.close(that);
       });
     }
     return that;
@@ -620,10 +622,10 @@
     ,checkValid = function(dateTime){
       if(dateTime.year > LIMIT_YEAR[1]) dateTime.year = LIMIT_YEAR[1], error = true; //不能超过20万年
       if(dateTime.month > 11) dateTime.month = 11, error = true;
-      if(dateTime.hours > 23) dateTime.hours = 0, error = true;
-      if(dateTime.minutes > 59) dateTime.minutes = 0, dateTime.hours++, error = true;
       if(dateTime.seconds > 59) dateTime.seconds = 0, dateTime.minutes++, error = true;
-      
+      if(dateTime.minutes > 59) dateTime.minutes = 0, dateTime.hours++, error = true;
+      if(dateTime.hours > 23) dateTime.hours = 0, error = true;
+
       //计算当前月的最后一天
       thisMaxDate = laydate.getEndDate(dateTime.month + 1, dateTime.year);
       if(dateTime.date > thisMaxDate) dateTime.date = thisMaxDate, error = true;
@@ -651,15 +653,18 @@
           if(thisv < 1) thisv = 1, error = true;
           dateTime.date = thisv;
         } else if(/HH|H/.test(item)){ //时
-          if(thisv < 1) thisv = 0, error = true;
+          if (thisv < 0) thisv = 0, error = true;
+          if (thisv > 23) thisv = 23, error = true;
           dateTime.hours = thisv;
           options.range && (that[startEnd[index]].hours = thisv);
         } else if(/mm|m/.test(item)){ //分
-          if(thisv < 1) thisv = 0, error = true;
+          if (thisv < 0) thisv = 0, error = true;
+          if (thisv > 59) thisv = 59, error = true;
           dateTime.minutes = thisv;
           options.range && (that[startEnd[index]].minutes = thisv);
         } else if(/ss|s/.test(item)){ //秒
-          if(thisv < 1) thisv = 0, error = true;
+          if (thisv < 0) thisv = 0, error = true;
+          if (thisv > 59) thisv = 59, error = true;
           dateTime.seconds = thisv;
           options.range && (that[startEnd[index]].seconds = thisv);
         }
@@ -779,7 +784,7 @@
     return that;
   };
   
-  //公历重要日期与自定义备注
+  // 公历重要日期与自定义备注
   Class.prototype.mark = function(td, YMD){
     var that = this
     ,mark, options = that.config;
@@ -793,6 +798,27 @@
     });
     mark && td.html('<span class="laydate-day-mark">'+ mark +'</span>');
     
+    return that;
+  };
+
+  // 标注法定节假日或补假上班
+  Class.prototype.holidays = function(td, YMD) {
+    var that = this;
+    var options = that.config;
+    var type = ['', 'work'];
+
+    if(layui.type(options.holidays) !== 'array') return that;
+    
+    lay.each(options.holidays, function(idx, item) {
+      lay.each(item, function(i, dayStr) {
+        if(dayStr === td.attr('lay-ymd')){
+          td.html('<span class="laydate-day-holidays"' + (
+            type[idx] ? ('type="'+ type[idx] +'"') : ''
+          ) + '>' + YMD[2] + '</span>');
+        }
+      });
+    });
+
     return that;
   };
   
@@ -881,7 +907,7 @@
       YMD[1]++;
       YMD[2] = st + 1;
       item.attr('lay-ymd', YMD.join('-')).html(YMD[2]);
-      that.mark(item, YMD).limit(item, {
+      that.mark(item, YMD).holidays(item, YMD).limit(item, {
         year: YMD[0]
         ,month: YMD[1] - 1
         ,date: YMD[2]
@@ -1713,6 +1739,12 @@
     ,1);
     //减去一天，得到当前月最后一天
     return new Date(thisDate.getTime() - 1000*60*60*24).getDate();
+  };
+
+  // 关闭日期面板
+  laydate.close = function(id){
+    var elem = lay('#'+ (id ? ('layui-laydate'+ id) : Class.thisElemDate));
+    elem.remove();
   };
   
   //加载方式
