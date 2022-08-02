@@ -8,14 +8,14 @@
   "use strict";
 
   var doc = win.document, config = {
-    modules: {} //记录模块物理路径
-    ,status: {} //记录模块加载状态
-    ,timeout: 10 //符合规范的模块请求最长等待秒数
-    ,event: {} //记录模块自定义事件
+    modules: {} // 模块物理路径
+    ,status: {} // 模块加载状态
+    ,timeout: 10 // 符合规范的模块请求最长等待秒数
+    ,event: {} // 模块自定义事件
   }
 
   ,Layui = function(){
-    this.v = '2.7.4'; // layui 版本号
+    this.v = '2.7.6'; // layui 版本号
   }
   
   //识别预先可能定义的指定全局对象
