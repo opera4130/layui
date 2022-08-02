@@ -850,7 +850,7 @@ layer.style = function(index, options, limit){
   }
   
   layero.css(options);
-  btnHeight = layero.find('.'+doms[6]).outerHeight() || 0;
+  btnHeight = layero.find('.'+doms[6]).outerHeight();
   
   if(type === ready.type[2]){
     layero.find('iframe').css({

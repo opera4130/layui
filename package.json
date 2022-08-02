@@ -1,6 +1,7 @@
 {
   "name": "layui",
-  "version": "2.7.6",
+  "realname": "layui",
+  "version": "2.7.4",
   "description": "Classic modular Front-End UI library",
   "main": "dist/layui.js",
   "license": "MIT",
@@ -23,7 +24,7 @@
     "minimist": "^1.2.5"
   },
   "bugs": {
-    "url": "https://gitee.com/layui/layui/issues"
+    "url": "https://gitee.com/sentsin/layui/issues"
   },
   "dependencies": {},
   "keywords": [
