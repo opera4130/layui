@@ -15,7 +15,7 @@
   }
 
   ,Layui = function(){
-    this.v = '2.7.6'; // layui 版本号
+    this.v = '2.8.1'; // Layui 版本号
   }
   
   //识别预先可能定义的指定全局对象
@@ -54,13 +54,13 @@
     ,laydate: 'laydate' //日期
     ,laypage: 'laypage' //分页
     ,laytpl: 'laytpl' //模板引擎
-    ,layedit: 'layedit' //富文本编辑器
     ,form: 'form' //表单集
     ,upload: 'upload' //上传
     ,dropdown: 'dropdown' //下拉菜单
     ,transfer: 'transfer' //穿梭框
     ,tree: 'tree' //树结构
     ,table: 'table' //表格
+    ,treeTable: 'treeTable' //树表
     ,element: 'element' //常用元素操作
     ,rate: 'rate'  //评分组件
     ,colorpicker: 'colorpicker' //颜色选择器
@@ -149,7 +149,7 @@
         (function poll() {
           if(++timeout > config.timeout * 1000 / 4){
             return error(item + ' is not a valid module', 'error');
-          };
+          }
           config.status[item] ? onCallback() : setTimeout(poll, 4);
         }());
       }
@@ -222,7 +222,7 @@
       (function poll() {
         if(++timeout > config.timeout * 1000 / 4){
           return error(item + ' is not a valid module', 'error');
-        };
+        }
         (typeof config.modules[item] === 'string' && config.status[item]) 
         ? onCallback() 
         : setTimeout(poll, 4);
@@ -286,7 +286,7 @@
       //如果轮询超过指定秒数，则视为请求文件失败或 css 文件不符合规范
       if(++timeout > config.timeout * 1000 / delay){
         return error(href + ' timeout');
-      };
+      }
       
       //css 加载就绪
       if(parseInt(that.getStyle(getLinkElem, 'width')) === 1989){
@@ -672,7 +672,7 @@
         } else { //数字 vs 数字
           return v1 - v2;
         }
-      };
+      }
       
       /**
        * 字典序排序
@@ -744,9 +744,14 @@
     if(fn){
       config.event[eventName] = config.event[eventName] || {};
 
-      //这里不再对重复事件做支持
-      //config.event[eventName][filterName] ? config.event[eventName][filterName].push(fn) : 
-      config.event[eventName][filterName] = [fn];
+      if (filterName) {
+        // 带filter不支持重复事件
+        config.event[eventName][filterName] = [fn];
+      } else {
+        // 不带filter处理的是所有的同类事件，应该支持重复事件
+        config.event[eventName][filterName] = config.event[eventName][filterName] || [];
+        config.event[eventName][filterName].push(fn);
+      }
       return this;
     }
     

@@ -16,21 +16,108 @@
     </style>
   </head>
 <body>
-  <form class="layui-form" method="get" lay-filter="top" id="AAA">
-    <div class="layui-form-item">
-      <div class="layui-input-inline">
-        <input type="text" name="arr[]" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+  <form class="layui-form" method="get" lay-filter="top">
+    <div class="layui-row layui-col-space16">
+      <div class="layui-col-md3">
+        <div class="layui-input-group">
+          <div class="layui-input-split layui-input-prefix">
+            前置信息
+          </div>
+          <input type="text" name="arr[]" required lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+          <div class="layui-input-split layui-input-suffix">
+            后置信息
+          </div>
+        </div>
       </div>
-      <div class="layui-input-inline">
-        <input type="text" name="arr[]" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <input type="text" name="arr[]" required placeholder="请输入" autocomplete="off" class="layui-input">
+          <div class="layui-input-split">
+            <i class="layui-icon layui-icon-down"></i>
+          </div>
+        </div>
       </div>
-      <div class="layui-input-inline">
-        <input type="text" name="arr[title]" lay-verify="required" placeholder="请输入" autocomplete="off" class="layui-input">
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-username"></i>
+          </div>
+          <input type="text" name="arr[]" value="" required placeholder="请输入" autocomplete="off" class="layui-input" lay-affix="clear">
+        </div>
       </div>
-    </div>
-    <div class="layui-form-item">
-      <button class="layui-btn" id="testSubmit">立即提交</button>
-    </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-password"></i>
+          </div>
+          <input type="password" name="arr[]" value="" required placeholder="请输入" autocomplete="off" class="layui-input" lay-affix="eye">
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <input type="text" name="arr[]" value="" required placeholder="自定义动态点缀图标" autocomplete="off" class="layui-input" lay-affix="set" lay-filter="set">
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix layui-input-split">
+            <i class="layui-icon layui-icon-username"></i>
+          </div>
+          <input type="text" name="arr[]" value="" required placeholder="请输入" autocomplete="off" class="layui-input" lay-affix="clear">
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <input type="text" name="arr[]" value="" required placeholder="请输入" autocomplete="off" class="layui-input" lay-affix="clear">
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <input type="text" name="arr[]" value="禁用或只读状态" disabled placeholder="请输入" autocomplete="off" class="layui-input" lay-affix="clear">
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-date"></i>
+          </div>
+          <input type="text" name="arr[]" required placeholder="前缀和后缀" autocomplete="off" class="layui-input">
+          <div class="layui-input-suffix">
+            <i class="layui-icon layui-icon-down"></i>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <input type="text" name="arr[]" required placeholder="后缀+clear" lay-affix="clear" autocomplete="off" class="layui-input">
+          <div class="layui-input-suffix">
+            <i class="layui-icon layui-icon-more-vertical"></i>
+          </div>
+        </div>
+      </div>
+      <div class="layui-col-md3">
+        <div class="layui-input-wrap">
+          <div class="layui-input-prefix">
+            <i class="layui-icon layui-icon-username"></i>
+          </div>
+          <select name="selectdemo">
+            <option value="">在 select 中使用</option>
+            <option value="北京">北京</option>
+            <option value="上海">上海</option>
+            <option value="广州">广州</option>
+            <option value="深圳">深圳</option>
+          </select>
+        </div>
+      </div>
+      <div class="layui-col-md12">
+        <div class="layui-input-wrap">
+          <textarea class="layui-textarea" lay-affix="clear"></textarea>
+        </div>
+      </div>
+      <div class="layui-col-md12">
+        <button class="layui-btn" id="testSubmit">立即提交</button>
+      </div>
+    </div>  
   </form>
 
   <hr>
@@ -209,25 +296,25 @@
       </div>
     </div>
     <div class="layui-form-item" pane>
-      <label class="layui-form-label">原始复选框</label>
+      <label class="layui-form-label">标签框</label>
       <div class="layui-input-block">
-        <input type="checkbox" name="like1[write]" lay-skin="primary" title="写作">
-        <input type="checkbox" name="like1[read]" lay-skin="primary" title="阅读">
-        <input type="checkbox" name="like1[game]" lay-skin="primary" title="游戏" disabled>
+        <input type="checkbox" name="like1[write]" lay-skin="tag" title="写作">
+        <input type="checkbox" name="like1[read]" lay-skin="tag" title="阅读">
+        <input type="checkbox" name="like1[game]" lay-skin="tag" title="游戏" disabled>
       </div>
     </div>
     <div class="layui-form-item" pane>
       <label class="layui-form-label">开关关</label>
       <div class="layui-input-block">
         <input type="checkbox" name="close" lay-skin="switch" title="开关">
-        <input type="checkbox" name="close2" lay-skin="switch" title="开关" lay-text="ON|OFF" disabled>
+        <input type="checkbox" name="close2" lay-skin="switch" title="|OFF" disabled>
       </div>
     </div>
     <div class="layui-form-item" pane>
       <label class="layui-form-label">开关开</label>
       <div class="layui-input-block">
-        <input type="checkbox" checked name="open" lay-skin="switch" lay-filter="switchTest" lay-text="ON|OFF">
-        <input type="checkbox" name="open2" lay-skin="switch" lay-filter="switchTest" lay-text="已绑定|绑定">
+        <input type="checkbox" checked name="open" lay-skin="switch" lay-filter="switchTest" title="ON|OFF">
+        <input type="checkbox" name="open2" lay-skin="switch" lay-filter="switchTest" title="已绑定|绑定">
       </div>
     </div>
     <div class="layui-form-item" pane>
@@ -333,6 +420,11 @@
       ,xxxxxxxxx: 123
     });
 
+    // 自定义动态点缀事件
+    form.on('input-affix(set)', function(data){
+      var elem = data.elem;
+      elem.value = '通过自定义事件设置的值';
+    });
     
     //事件
     form.on('select(quiz111)', function(data){

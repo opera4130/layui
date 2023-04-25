@@ -1,5 +1,5 @@
 
-/** lay 基础 DOM 操作 | MIT Licensed */
+/** lay 基础模块 | MIT Licensed */
 
 ;!function(window){ //gulp build: lay-header
   "use strict";
@@ -12,12 +12,15 @@
     return new LAY(selector);
   }
   
-  //DOM构造器
+  // DOM 构造器
   ,LAY = function(selector){
-    var index = 0
-    ,nativeDOM = typeof selector === 'object' ? [selector] : (
-      this.selector = selector
-      ,document.querySelectorAll(selector || null)
+    var index = 0;
+    var nativeDOM = typeof selector === 'object' ? function(){
+      // 仅适配简单元素对象
+      return layui.isArray(selector) ? selector : [selector];
+    }() : (
+      this.selector = selector,
+      document.querySelectorAll(selector || null)
     );
     for(; index < nativeDOM.length; index++){
       this.push(nativeDOM[index]);
@@ -202,14 +205,23 @@
     }
   };
   
-  //获取元素上的参数配置上
-  lay.options = function(elem, attr){
-    var othis = lay(elem)
-    ,attrName = attr || 'lay-options';
+  // 获取元素上的属性配置项
+  lay.options = function(elem, opts){
+    opts = typeof opts === 'object' ? opts : {attr: opts};
+
+    if(elem === document) return {};
+
+    var othis = lay(elem);
+    var attrName = opts.attr || 'lay-options';
+    var attrValue = othis.attr(attrName);
+
     try {
-      return new Function('return '+ (othis.attr(attrName) || '{}'))();
+      return new Function('return '+ (attrValue || '{}'))();
     } catch(ev) {
-      hint.error('parseerror：'+ ev, 'error');
+      layui.hint().error(opts.errorText || [
+        attrName + '="'+ attrValue + '"', 
+        '\n parseerror: '+ ev
+      ].join('\n'), 'error');
       return {};
     }
   };
@@ -421,4 +433,4 @@
     });
   }
   
-}(window, window.document);
+}(window, window.document); //gulp build: lay-footer
