@@ -11,6 +11,7 @@
  
 <div id="ID-tree-demo"></div>
 
+<!-- import layui -->
 <script>
 layui.use(function(){
   var tree = layui.tree;
@@ -40,11 +41,11 @@ layui.use(function(){
       
       layer.alert(JSON.stringify(checkedData), {shade:0});
       console.log(checkedData);
-    }
-    ,setChecked: function(){
+    },
+    setChecked: function(){
       tree.setChecked('demo-id-1', [12, 16]); // 勾选对应 id 值的节点
-    }
-    ,reload: function(){
+    },
+    reload: function(){
       tree.reload('demo-id-1', {}); // 重载实例
     }
   });
@@ -59,6 +60,8 @@ layui.use(function(){
 <pre class="layui-code" lay-options="{preview: true, layout: ['preview', 'code'], tools: ['full']}">
   <textarea>
 <div id="ID-tree-demo-showLine"></div>
+
+<!-- import layui -->
 <script>
 layui.use(function(){
   var tree = layui.tree;
@@ -82,6 +85,8 @@ layui.use(function(){
 <pre class="layui-code" lay-options="{preview: true, layout: ['preview', 'code'], tools: ['full']}">
   <textarea>
 <div id="ID-tree-demo-onlyIconControl"></div>
+
+<!-- import layui -->
 <script>
 layui.use(function(){
   var tree = layui.tree;
@@ -110,6 +115,8 @@ layui.use(function(){
 <pre class="layui-code" lay-options="{preview: true, layout: ['preview', 'code'], tools: ['full']}">
   <textarea>
 <div id="ID-tree-demo-accordion"></div>
+
+<!-- import layui -->
 <script>
 layui.use(function(){
   var tree = layui.tree;
@@ -118,22 +125,22 @@ layui.use(function(){
   tree.render({
     elem: '#ID-tree-demo-accordion',
     data: [{
-      title: '优秀'
-      ,children: [{
+      title: '优秀',
+      children: [{
         title: '80 ~ 90'
       },{
         title: '90 ~ 100'
       }]
     },{
-      title: '良好'
-      ,children: [{
+      title: '良好',
+      children: [{
         title: '70 ~ 80'
       },{
         title: '60 ~ 70'
       }]
     },{
-      title: '一般'
-      ,children: [{
+      title: '一般',
+      children: [{
         title: '0 ~ 60'
       }]
     }],
@@ -149,6 +156,8 @@ layui.use(function(){
 <pre class="layui-code" lay-options="{preview: true, layout: ['preview', 'code'], tools: ['full']}">
   <textarea>
 <div id="ID-tree-demo-showCheckbox"></div>
+
+<!-- import layui -->
 <script>
 layui.use(function(){
   var tree = layui.tree;

@@ -35,7 +35,8 @@
   {{# var color = d.color || ['#16baaa','#16b777','#1E9FFF','#FF5722','#FFB800','#393D49'][Math.round(Math.random()*5)]; }}
   <div class="colorpicker-demo" lay-options="{color: '{{= color }}'}"></div>
 </script>!}}
- 
+
+<!-- import layui -->
 <script>
 layui.use(function(){
   var $ = layui.$;
@@ -47,25 +48,25 @@ layui.use(function(){
   
   // 渲染
   table.render({
-    elem: '#ID-table-demo-editmodes'
-    ,url: '{{d.root}}/static/json/table/user.json' // 此处为静态模拟数据，实际使用时需换成真实接口
-    ,page: true
-    ,css: [ // 设置单元格样式
+    elem: '#ID-table-demo-editmodes',
+    url: '{{d.root}}/static/json/table/user.json', // 此处为静态模拟数据，实际使用时需换成真实接口
+    page: true,
+    css: [ // 设置单元格样式
       // 取消默认的溢出隐藏，并设置适当高度
       '.layui-table-cell{height: 50px; line-height: 40px; overflow: visible;}',
       '.layui-table-cell .layui-colorpicker{width: 38px; height: 38px;}',
       '.layui-table-cell select{height: 36px; padding: 0 5px;}'
-    ].join('')
-    ,cols: [[ // 表头
-      {field: 'id', title: 'ID', width:80, align: 'center', fixed: 'left'}
-      ,{field: 'city', title: '原生 select', width:150, templet: '#TPL-select-primary'} 
-      //,{field: 'city', title: 'layui select', width:150, templet: '#TPL-select-city'} 
-      ,{field: 'sex', title: 'dropdown', width:115, align: 'center', templet: '#TPL-dropdpwn-demo'} 
-      ,{field: 'date', title: 'laydate', width:150, templet: '#TPL-laydate-demo'} 
-      ,{field: 'color', title: 'colorpicker', width:100, align: 'center', templet: '#TPL-colorpicker-demo'}
-      ,{field: 'sign', title: '文本', edit: 'textarea'}
-    ]]
-    ,done: function(res, curr, count){
+    ].join(''),
+    cols: [[ // 表头
+      {field: 'id', title: 'ID', width:80, align: 'center', fixed: 'left'},
+      {field: 'city', title: '原生 select', width:150, templet: '#TPL-select-primary'}, 
+      //{field: 'city', title: 'layui select', width:150, templet: '#TPL-select-city'}, 
+      {field: 'sex', title: 'dropdown', width:115, align: 'center', templet: '#TPL-dropdpwn-demo'}, 
+      {field: 'date', title: 'laydate', width:150, templet: '#TPL-laydate-demo'}, 
+      {field: 'color', title: 'colorpicker', width:100, align: 'center', templet: '#TPL-colorpicker-demo'},
+      {field: 'sign', title: '文本', edit: 'textarea'}
+    ]],
+    done: function(res, curr, count){
       var options = this;
 
       // 获取当前行数据
@@ -94,20 +95,20 @@ layui.use(function(){
       
       // dropdown 方式的下拉选择
       dropdown.render({
-        elem: '.dropdpwn-demo'
-        // ,trigger: 'hover'
+        elem: '.dropdpwn-demo',
+        // trigger: 'hover',
         // 此处的 data 值，可根据 done 返回的 res 遍历来赋值
-        ,data: [{
-          title: '男'
-          ,id: 100
+        data: [{
+          title: '男',
+          id: 100
         },{
-          title: '女'
-          ,id: 101
+          title: '女',
+          id: 101
         },{
-          title: '保密'
-          ,id: 102
-        }]
-        ,click: function(obj){
+          title: '保密',
+          id: 102
+        }],
+        click: function(obj){
           var data = table.getRowData(this.elem); // 获取当前行数据(如 id 等字段，以作为数据修改的索引)
           
           this.elem.find('span').html(obj.title);

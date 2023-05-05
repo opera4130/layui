@@ -25,6 +25,7 @@
 .class-demo-layer-lockscreen .layui-input-suffix .layui-icon-right{cursor: pointer; color: #fff;}
 </style>
 
+<!-- import layui --> 
 <script>
 layui.use(function(){
   var layer = layui.layer;
@@ -78,24 +79,24 @@ layui.use(function(){
           form.render(); // 表单组件渲染
           input.focus();
 
-          // 回车
-          input.on('keyup', function(e){
-            var elem = this;
-            var keyCode = e.keyCode;
-            if(keyCode === 13){
-              if(elem.value === PASS){
-                layer.close(index);
-              }
-            }
-          });
           // 点击解锁按钮
-          layero.find('#ID-layer-demo-unlock').on('click', function(){
+          var elemUnlock = layero.find('#ID-layer-demo-unlock');
+          elemUnlock.on('click', function(){
             if($.trim(input[0].value) === PASS){
               layer.close(index);
               layer.closeLast('dialog'); // 关闭最新打开的信息框
             } else {
               layer.msg('锁屏密码输入有误', {offset: '16px', anim: 'slideDown'})
               input.focus();
+            }
+          });
+
+          // 回车
+          input.on('keyup', function(e){
+            var elem = this;
+            var keyCode = e.keyCode;
+            if(keyCode === 13){
+              elemUnlock.trigger('click');
             }
           });
         }
