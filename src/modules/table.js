@@ -405,7 +405,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       ,'style': function(){
         var arr = [];
         if(options.width) arr.push('width:'+ options.width + 'px;');
-        if(options.height) arr.push('height:'+ options.height + 'px;');
+        // if(options.height) arr.push('height:'+ options.height + 'px;');
         return arr.join('')
       }()
     }).html(laytpl(TPL_MAIN, {
@@ -1464,8 +1464,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     ));
 
     opts = $.extend({
-      type: 'checkbox', // 选中方式
-      checked: true // 选中状态
+      type: 'checkbox' // 选中方式
     }, opts);
 
     // 标注当前行选中样式
@@ -1473,26 +1472,33 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       tr.addClass(ELEM_CLICK).siblings('tr').removeClass(ELEM_CLICK);
     }
 
-    // 仅设置样式状态
+    // 仅设置样式状态，不设置数据中的选中属性
     if(opts.selectedStyle || selectedStyle) return;
 
     // 同步数据选中属性值
     var thisData = table.cache[that.key];
+    var existChecked = 'checked' in opts;
+    var getChecked = function(value){
+      // 若为单选框，则单向选中；若为复选框，则切换选中。
+      return opts.type === 'radio' ? true : (existChecked ? opts.checked : !value)
+    };
 
     // 设置数据选中属性
     layui.each(thisData, function(i, item){
       if(opts.index === i || opts.index === 'all'){
-        item[options.checkName] = opts.checked;
+        item[options.checkName] = getChecked(item[options.checkName]);
       } else if(opts.type === 'radio') {
         delete item[options.checkName];
       }
     });
 
-    // 若存在复选框或单选框，则标注选中样式
-    tr.find('input[lay-type="'+ ({
+    // 若存在复选框或单选框，则标注选中状态样式
+    var checkedElem = tr.find('input[lay-type="'+ ({
       radio: 'layTableRadio',
       checkbox: 'layTableCheckbox'
-    }[opts.type] || 'checkbox') +'"]').prop('checked', opts.checked);
+    }[opts.type] || 'checkbox') +'"]');
+
+    checkedElem.prop('checked', getChecked(checkedElem.last().prop('checked')));
 
     that.syncCheckAll();
     that.renderForm(opts.type);
@@ -1584,10 +1590,10 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     }
   };
 
-  //请求loading
+  // 请求 loading
   Class.prototype.loading = function(hide){
-    var that = this
-    ,options = that.config;
+    var that = this;
+    var options = that.config;
     if(options.loading){
       if(hide){
         that.layInit && that.layInit.remove();
@@ -1602,14 +1608,22 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     }
   };
 
-  //同步选中值状态
-  Class.prototype.setCheckData = function(index, checked){
-    var that = this
-    ,options = that.config
-    ,thisData = table.cache[that.key];
+  // 同步选中值状态
+  Class.prototype.setCheckData = function(index, checked, radio){
+    var that = this;
+    var options = that.config;
+    var thisData = table.cache[that.key];
+
     if(!thisData[index]) return;
     if(layui.type(thisData[index]) === 'array') return;
-    thisData[index][options.checkName] = checked;
+    
+    layui.each(thisData, function(i, item){
+      if(index === i){
+        item[options.checkName] = checked;
+      } else if(radio) { // 是否单选
+        delete item[options.checkName];
+      }
+    });
   };
 
   // 同步全选按钮状态
@@ -1674,11 +1688,11 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       // 减去页面固定高度和动态高度
       height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement, that);
       if(height < 135) height = 135;
-      that.elem.css('height', height);
+      // that.elem.css('height', height);
     } else if (that.parentDiv && that.parentHeightGap) {
       height = $(that.parentDiv).height() - that.parentHeightGap;
       if (height < 135) height = 135;
-      that.elem.css("height", height);
+      // that.elem.css("height", height);
     }
 
     // 如果多级表头，则填补表头高度
@@ -1695,22 +1709,22 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
     if(!height) return;
 
-    // 减去列头区域的高度 --- 此处的数字常量是为了防止容器处在隐藏区域无法获得高度的问题，暂时只对默认尺寸表格做支持
-    bodyHeight = parseFloat(height) - (that.layHeader.outerHeight() || 39) - 1;
+    // 减去列头区域的高度 --- 此处的数字常量是为了防止容器处在隐藏区域无法获得高度的问题，只对默认尺寸表格做支持
+    bodyHeight = parseFloat(height) - (that.layHeader.outerHeight() || 39)
 
     // 减去工具栏的高度
     if(options.toolbar){
-      bodyHeight -= (that.layTool.outerHeight() || 50);
+      bodyHeight -= (that.layTool.outerHeight() || 51);
     }
 
     // 减去统计栏的高度
     if(options.totalRow){
-      bodyHeight -= (that.layTotal.outerHeight() || 40) - 1; // 减掉一个共用的 border width
+      bodyHeight -= (that.layTotal.outerHeight() || 40);
     }
 
     // 减去分页栏的高度
     if(options.page || options.pagebar){
-      bodyHeight -= (that.layPage.outerHeight() || 43) - 1;
+      bodyHeight -= (that.layPage.outerHeight() || 43);
     }
 
     if (options.maxHeight) {
@@ -1925,8 +1939,14 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
           printWin.document.write(style + html.prop('outerHTML'));
           printWin.document.close();
-          printWin.print();
-          printWin.close();
+          
+          if(layui.device('edg').edg){
+            printWin.onafterprint = printWin.close;
+            printWin.print();
+          }else{
+            printWin.print();
+            printWin.close();
+          }
         break;
       }
 
@@ -2160,7 +2180,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     };
 
     // 复选框选择（替代元素的 click 事件）
-    that.elem.on('click', 'input[name="layTableCheckbox"]+', function(){
+    that.elem.on('click', 'input[name="layTableCheckbox"]+', function(e){
       var othis = $(this);
       var td = othis.closest('td');
       var checkbox = othis.prev();
@@ -2182,6 +2202,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       } else {
         that.setCheckData(index, checked);
         that.syncCheckAll();
+        layui.stope(e);
       }
 
       // 事件
@@ -2199,20 +2220,24 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     });
 
     // 单选框选择
-    that.elem.on('click', 'input[lay-type="layTableRadio"]+', function(){
+    that.elem.on('click', 'input[lay-type="layTableRadio"]+', function(e){
       var othis = $(this);
       var td = othis.closest('td');
       var radio = othis.prev();
       var checked = radio[0].checked;
       var index = radio.parents('tr').eq(0).data('index');
 
-      if(radio[0].disabled) return;
+      layui.stope(e);
+      if(radio[0].disabled) return false;
 
-      // 单选框选中状态
+      // 标注数据中的选中属性
+      that.setCheckData(index, checked, 'radio');
+
+      // 标注选中样式
       that.setRowChecked({
         type: 'radio',
         index: index
-      });
+      }, true);
 
       // 事件
       layui.event.call(
@@ -2238,7 +2263,16 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       var index = othis.index();
       if(othis.data('off')) return; // 不触发事件
       that.layBody.find('tr:eq('+ index +')').removeClass(ELEM_HOVER)
-    }).on('click', 'tr', function(){ // 单击行
+    }).on('click', 'tr', function(e){ // 单击行
+      // 不支持行单击事件的元素
+      var UNROW = '.layui-form-checkbox,.layui-form-radio,[lay-unrow]';
+      var container = $(this).find(UNROW);
+      if(
+        $(e.target).is(UNROW) || 
+        container[0] && $.contains(container[0], e.target)
+      ){
+        return;
+      };
       setRowEvent.call(this, 'row');
     }).on('dblclick', 'tr', function(){ // 双击行
       setRowEvent.call(this, 'rowDouble');
