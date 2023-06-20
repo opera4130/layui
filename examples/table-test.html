@@ -157,11 +157,11 @@ layui.use(['table', 'dropdown'], function(){
       {type: 'checkbox', fixed: 'left'}
       //,{type: 'numbers', fixed: 'left'}
       ,{field:'id', title:'ID', width:80, fixed: 'left', unresize: true, sort: true, totalRowText: '合计：'}
-      ,{field:'username', title:'用户名', width:120, edit: function(d){
+      ,{field:'username', title:'用户名 <i class="layui-icon layui-icon-username" lay-event="username"></i>', width:120, edit: function(d){
         return !d.LAY_DISABLED;
       }, templet: '#usernameTpl'}
       ,{field:'xxx', title:'测试', edit: 'text'}
-      ,{field:'email', minWidth: 160, maxWidth: 320, title:'邮箱 <i class="layui-icon layui-icon-email"></i>', fieldTitle: '邮箱', hide: 0, edit: 'text', templet: function(d){
+      ,{field:'email', minWidth: 160, maxWidth: 320, title:'邮箱 <i class="layui-icon layui-icon-email" lay-event="email"></i>', fieldTitle: '邮箱', hide: 0, edit: 'text', templet: function(d){
         return '<em>'+ layui.util.escape(d.email) +'</em>'
       }}
       ,{field:'sex', title:'性别', width:80, edit: 'text', sort: true, escape: false}
@@ -174,7 +174,7 @@ layui.use(['table', 'dropdown'], function(){
       ,{field:'sign', title:'签名', minWidth: 200, style:'color: #5FB878', edit: 'textarea'}
       ,{field: 'experience', title: '积分', width: 100, sort: true, align:'center', totalRow: !1 ? true : '{{= d.TOTAL_NUMS }} 分 😊', templet: '<div><a href="" class="layui-table-link">{{= d[d.LAY_COL.field] }}</a> 分</div>'}
       ,{field:'ip', title:'IP', width: 120, align: 'right'}
-      ,{field:'checkin', title:'打卡', width: 100, sort: true, totalRow: '{{= parseInt(d.TOTAL_NUMS) }} 次'}
+      ,{field:'checkin', title:'打卡', width: 100, sort: true, totalRow: '{{= d.TOTAL_ROW.checkin }} 次'}
       ,{field:'joinTime', title:'加入时间', width: 120}
       ,{fixed: 'right', title:'操作', toolbar: '#barDemo', width: 180}
     ]]
@@ -421,7 +421,7 @@ layui.use(['table', 'dropdown'], function(){
     });
   });
   
-  // 工具栏事件
+  // 头部工具栏事件
   table.on('toolbar(test)', function(obj){
     var id = obj.config.id;
     var checkStatus = table.checkStatus(id);
@@ -443,6 +443,11 @@ layui.use(['table', 'dropdown'], function(){
         layer.alert('Table for layui-v'+ layui.v);
       break;
     };
+  });
+
+  // 表头自定义元素工具事件
+  table.on('colTool(test)', function(obj){
+    console.log(obj);
   });
 
   //触发单元格工具事件
@@ -489,9 +494,14 @@ layui.use(['table', 'dropdown'], function(){
   
   // 行单击事件
   table.on('row(test)', function(obj){
-    //console.log(obj);
-    //layer.closeAll('tips');
+    console.log(obj);
+    // layer.closeAll('tips');
+    obj.setRowChecked({
+      // type: 'radio'
+    });
+    // layer.msg('row 事件')
   });
+
   // 行双击事件
   table.on('rowDouble(test)', function(obj){
     console.log(obj);
