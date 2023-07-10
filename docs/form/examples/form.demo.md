@@ -48,13 +48,13 @@
   </div>
   <div class="layui-form-item">
     <div class="layui-inline">
-      <label class="layui-form-label">范围</label>
+      <label class="layui-form-label">数字输入框</label>
       <div class="layui-input-inline" style="width: 100px;">
-        <input type="text" name="price_min" placeholder="￥" autocomplete="off" class="layui-input">
+        <input type="number" name="price_min" placeholder="" autocomplete="off" class="layui-input" min="0" step="1" lay-affix="number">
       </div>
       <div class="layui-form-mid">-</div>
       <div class="layui-input-inline" style="width: 100px;">
-        <input type="text" name="price_max" placeholder="￥" autocomplete="off" class="layui-input">
+        <input type="number" name="price_max" placeholder="" autocomplete="off" class="layui-input" min="0" step="1" lay-affix="number">
       </div>
     </div>
   </div>
@@ -164,7 +164,7 @@
     <div class="layui-input-block">
       <input type="checkbox" name="arr1[0]" lay-skin="tag" title="选项1" checked>
       <input type="checkbox" name="arr1[1]" lay-skin="tag" title="选项2">
-      <input type="checkbox" name="arr1[2]" lay-skin="tag" title="选项3" disabled>
+      <input type="checkbox" name="arr1[2]" lay-skin="tag" title="选项3">
     </div>
   </div>
   <div class="layui-form-item">
