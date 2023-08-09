@@ -2580,8 +2580,8 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
           var row = $.extend({
             title: th.text()
-            ,colspan: parseInt(th.attr('colspan')) || 0 //列单元格
-            ,rowspan: parseInt(th.attr('rowspan')) || 0 //行单元格
+            ,colspan: parseInt(th.attr('colspan')) || 1 //列单元格
+            ,rowspan: parseInt(th.attr('rowspan')) || 1 //行单元格
           }, itemData);
 
           options.cols[i].push(row);
@@ -2907,7 +2907,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     var dataParams = new RegExp('^('+ [
       'elem', 'id', 'cols', 'width', 'height', 'maxHeight',
       'toolbar', 'defaultToolbar',
-      'className', 'css', 'totalRow', 'pagebar'
+      'className', 'css', 'pagebar'
     ].join('|') + ')$');
 
     // 过滤与数据无关的参数

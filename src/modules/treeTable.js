@@ -203,6 +203,10 @@ layui.define(['table'], function (exports) {
   Class.prototype.init = function () {
     var that = this;
     var options = that.config;
+    var cascade = options.tree.data.cascade;
+    if (cascade !== 'parent' && cascade !== 'children') {
+      options.tree.data.cascade = 'all'; // 超出范围的都重置为全联动
+    }
 
     // 先初始一个空的表格以便拿到对应的表格实例信息
     var tableIns = table.render($.extend({}, options, {
@@ -243,7 +247,8 @@ layui.define(['table'], function (exports) {
       },
       data: {
         isSimpleData: false, // 是否简单数据模式
-        rootPid: null // 根节点的父 ID 值
+        rootPid: null, // 根节点的父 ID 值
+        cascade: 'all' // 级联方式 默认全部级联：all 可选 级联父 parent 级联子 children
       },
       async: {
         enable: false, // 是否开启异步加载模式，只有开启的时候其他参数才起作用
@@ -321,7 +326,6 @@ layui.define(['table'], function (exports) {
     layui.each(tableData, function (i1, item1) {
       var dataIndex = (parentIndex ? parentIndex + '-' : '') + i1;
       var dataNew = $.extend({}, item1);
-      dataNew[childrenKey] = null;
       dataNew[pIdKey] = item1[pIdKey] || parentId;
       flat.push(dataNew);
       flat = flat.concat(that.treeToFlat(item1[childrenKey], item1[customName.id], dataIndex));
@@ -1085,7 +1089,7 @@ layui.define(['table'], function (exports) {
     return treeTable.reload.apply(null, args);
   };
 
-  var updateStatus = function (data, statusObj, childrenKey) {
+  var updateStatus = function (data, statusObj, childrenKey, notCascade) {
     var dataUpdated = [];
     layui.each(data, function (i1, item1) {
       if (layui.type(statusObj) === 'function') {
@@ -1094,18 +1098,18 @@ layui.define(['table'], function (exports) {
         $.extend(item1, statusObj);
       }
       dataUpdated.push($.extend({}, item1));
-      dataUpdated = dataUpdated.concat(updateStatus(item1[childrenKey], statusObj, childrenKey));
+      notCascade || (dataUpdated = dataUpdated.concat(updateStatus(item1[childrenKey], statusObj, childrenKey, notCascade)));
     });
     return dataUpdated;
   }
 
-  Class.prototype.updateStatus = function (data, statusObj) {
+  Class.prototype.updateStatus = function (data, statusObj, notCascade) {
     var that = this;
     var options = that.getOptions();
     var treeOptions = options.tree;
     data = data || table.cache[options.id];
 
-    return updateStatus(data, statusObj, treeOptions.customName.children);
+    return updateStatus(data, statusObj, treeOptions.customName.children, notCascade);
   }
 
   Class.prototype.getTableData = function () {
@@ -1239,6 +1243,9 @@ layui.define(['table'], function (exports) {
       tableView.find('tr[data-level="0"][lay-data-index="' + item4[LAY_DATA_INDEX] + '"]').attr('data-index', i4);
     })
     options.hasNumberCol && formatNumber(that);
+
+    // 重新适配尺寸
+    table.resize(id);
   }
 
   /**
@@ -1258,6 +1265,7 @@ layui.define(['table'], function (exports) {
     var options = that.getOptions();
     var treeOptions = options.tree;
     var tableViewElem = options.elem.next();
+    var checkName = table.config.checkName;
 
     opts = opts || {};
 
@@ -1272,6 +1280,13 @@ layui.define(['table'], function (exports) {
 
     // 添加数据
     newNodes = $.extend(true, [], (layui.isArray(newNodes) ? newNodes : [newNodes]));
+
+    // 若未传入 LAY_CHECKED 属性，则继承父节点的 checked 状态
+    layui.each(newNodes, function(i, item){
+      if(!(checkName in item)){
+        item[checkName] = parentNode[checkName];
+      }
+    })
 
     var tableData = that.getTableData(), dataAfter;
     if (!parentNode) {
@@ -1380,6 +1395,10 @@ layui.define(['table'], function (exports) {
       // 滚动到第一个新增的节点
       tableViewElem.find(ELEM_MAIN).find('tr[lay-data-index="' + newNodes[0][LAY_DATA_INDEX] + '"]').get(0).scrollIntoViewIfNeeded();
     }
+
+    // 重新适配尺寸
+    table.resize(id);
+
     return newNodes;
   }
 
@@ -1387,6 +1406,8 @@ layui.define(['table'], function (exports) {
   treeTable.checkStatus = function (id, includeHalfCheck) {
     var that = getThisTable(id);
     if (!that) return;
+    var options = that.getOptions();
+    var treeOptions = options.tree;
     var checkName = table.config.checkName;
 
     // 需要区分单双选
@@ -1396,7 +1417,7 @@ layui.define(['table'], function (exports) {
     });
 
     var isAll = true;
-    layui.each(table.cache[id], function (i1, item1) {
+    layui.each(treeOptions.data.cascade === 'all' ? table.cache[id] : treeTable.getData(id, true), function (i1, item1) {
       if (!item1[checkName]) {
         isAll = false;
         return true;
@@ -1498,6 +1519,24 @@ layui.define(['table'], function (exports) {
     }
   })
 
+  // 设置或取消行选中样式
+  Class.prototype.setRowCheckedClass = function(tr, checked){
+    var that = this;
+    var options = that.getOptions();
+
+    var index = tr.data('index');
+    var tableViewElem = options.elem.next();
+
+    tr[checked ? 'addClass' : 'removeClass'](ELEM_CHECKED); // 主体行
+
+    // 右侧固定行
+    tr.each(function(){
+      var index = $(this).data('index');
+      var trFixedR = tableViewElem.find('.layui-table-fixed-r tbody tr[data-index="'+ index +'"]');
+      trFixedR[checked ? 'addClass' : 'removeClass'](ELEM_CHECKED);
+    });
+  };
+
   // 更新表格的复选框状态
   Class.prototype.updateCheckStatus = function (dataP, checked) {
     var that = this;
@@ -1508,15 +1547,18 @@ layui.define(['table'], function (exports) {
 
     var checkName = table.config.checkName;
 
+    var cascade = treeOptions.data.cascade;
+    var isCascadeParent = cascade === 'all' || cascade === 'parent';
+
     // 如有必要更新父节点们的状态
-    if (dataP) {
+    if (isCascadeParent && dataP) {
       var trsP = that.updateParentCheckStatus(dataP, layui.type(checked) === 'boolean' ? checked : null);
       layui.each(trsP, function (indexP, itemP) {
         var checkboxElem = tableView.find('tr[lay-data-index="' + itemP[LAY_DATA_INDEX] + '"]  input[name="layTableCheckbox"]:not(:disabled)');
         var checked = itemP[checkName];
 
-         // 标记父节点行背景色
-        checkboxElem.closest('tr')[checked ? 'addClass' : 'removeClass'](ELEM_CHECKED);
+        // 标记父节点行背景色
+        that.setRowCheckedClass(checkboxElem.closest('tr'), checked);
         
         // 设置原始复选框 checked 属性值并渲染
         form.render(checkboxElem.prop({
@@ -1529,12 +1571,15 @@ layui.define(['table'], function (exports) {
     // 更新全选的状态
     var isAll = true;
     var isIndeterminate = false;
-    layui.each(table.cache[tableId], function (i1, item1) {
+    layui.each(treeOptions.data.cascade === 'all' ? table.cache[tableId] : treeTable.getData(tableId, true), function (i1, item1) {
       if (item1[checkName] || item1[LAY_CHECKBOX_HALF]) {
         isIndeterminate = true;
       }
       if (!item1[checkName]) {
         isAll = false;
+      }
+      if (isIndeterminate && !isAll) {
+        return true;
       }
     })
     isIndeterminate = isIndeterminate && !isAll;
@@ -1601,6 +1646,7 @@ layui.define(['table'], function (exports) {
   var checkNode = function (trElem, checked, callbackFlag) {
     var that = this;
     var options = that.getOptions();
+    var treeOptions = options.tree;
     var tableId = options.id;
     var tableView = options.elem.next();
     var inputElem = (trElem.length ? trElem : tableView).find('.laytable-cell-radio, .laytable-cell-checkbox').children('input').last();
@@ -1649,20 +1695,22 @@ layui.define(['table'], function (exports) {
           if (d[checkName]) {
             var radioElem = tableView.find('tr[lay-data-index="' + d[LAY_DATA_INDEX] + '"] input[type="radio"][lay-type="layTableRadio"]');
             d[checkName] = false;
-            radioElem.closest('tr').removeClass(ELEM_CHECKED); // 取消当前选中行背景色
+
+            // 取消当前选中行背景色
+            that.setRowCheckedClass(radioElem.closest('tr'), false);
             form.render(radioElem.prop('checked', false));
           }
         }); // 取消其他的选中状态
         trData[checkName] = checked;
-        trElem[checked ? 'addClass' : 'removeClass'](ELEM_CHECKED); // 标记当前选中行背景色
-        trElem.siblings().removeClass(ELEM_CHECKED); // 取消其他行背景色
+
+        that.setRowCheckedClass(trElem, checked);  // 标记当前选中行背景色
+        that.setRowCheckedClass(trElem.siblings(), false); // 取消其他行背景色
+
         form.render(trElem.find('input[type="radio"][lay-type="layTableRadio"]').prop('checked', checked));
       } else {
-        var isParentKey = options.tree.customName.isParent;
         // 切换只能用到单条，全选到这一步的时候应该是一个确定的状态
         checked = layui.type(checked) === 'boolean' ? checked : !trData[checkName]; // 状态切换，如果遇到不可操作的节点待处理 todo
         // 全选或者是一个父节点，将子节点的状态同步为当前节点的状态
-        // if (!trData || trData[isParentKey]) {
         // 处理不可操作的信息
         var checkedStatusFn = function (d) {
           if (!d[table.config.disabledName]) { // 节点不可操作的不处理
@@ -1671,14 +1719,16 @@ layui.define(['table'], function (exports) {
           }
         }
 
-        var trs = that.updateStatus(trData ? [trData] : table.cache[tableId], checkedStatusFn);
+        var trs = that.updateStatus(trData ? [trData] : table.cache[tableId], checkedStatusFn, trData && treeOptions.data.cascade === 'parent');
         var checkboxElem = tableView.find(trs.map(function (value) {
           return 'tr[lay-data-index="' + value[LAY_DATA_INDEX] + '"] input[name="layTableCheckbox"]:not(:disabled)';
         }).join(','));
-        checkboxElem.closest('tr')[checked ? 'addClass' : 'removeClass'](ELEM_CHECKED); // 标记当前选中行背景色
+
+        that.setRowCheckedClass(checkboxElem.closest('tr'), checked);  // 标记当前选中行背景色
         form.render(checkboxElem.prop({checked: checked, indeterminate: false}));
-        // }
+
         var trDataP;
+
         // 更新父节点以及更上层节点的状态
         if (trData && trData[LAY_PARENT_INDEX]) {
           // 找到父节点，然后判断父节点的子节点是否全部选中
@@ -1855,7 +1905,7 @@ layui.define(['table'], function (exports) {
 
   // 重载
   treeTable.reload = function (id, options, deep, type) {
-    deep = deep !== false; // 默认采用深拷贝
+    // deep = deep !== false; // 默认采用深拷贝
     var that = getThisTable(id);
     if (!that) return;
     that.reload(options, deep, type);

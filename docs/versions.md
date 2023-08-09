@@ -12,6 +12,57 @@ toc: true
 > 导读：📑 [Layui 2.8 《升级指南》](/notes/2.8/upgrade-guide.html) · 📑 [Layui 新版文档站上线初衷](/notes/2.8/news.html)
 
 
+<h2 id="2.8.13" class="ws-anchor">
+  2.8.13
+  <span class="layui-badge-rim">2023-08-08</span>
+</h2>
+
+- #### table
+  - 优化 在自定义模板中放置 `checkbox` 时对应的文字显示异常问题 # I7LQNO
+  - 调整 `totalRow` 属性在 `table.reloadData()` 数据重载时的支持 # I7R6VY
+- #### treeTable
+  - 修复 执行 `treeTable.addNodes()` 增加节点导致当前节点选中状态丢失的问题 # I7Q6IP
+  - 优化 增加和删除节点时，对容器尺寸重新进行自动适配
+- #### tree
+  - 优化 容器样式，以解决用于其他组件内部可能造成的样式异常问题 # I7QAO3
+- #### dropdown
+  - **调整** `data.title` 属性对 HTML 的转义处理。若不转义，可通过 `templet` 属性实现 # I7Q6IV
+- #### util
+  - 重构 `util.toDateString()` 转换日期格式字符组件，以提供更强大的占位符支持 # 1314
+  - 修复 `util.fixbar()` 组件因 `default` 属性在 IE8 出现的保留字报错问题
+
+### 下载： [layui-v2.8.13.zip](https://gitee.com/layui/layui/attach_files/1490273/download)
+
+---
+
+
+<h2 id="2.8.12" class="ws-anchor">
+  2.8.12
+  <span class="layui-badge-rim">2023-08-01</span>
+</h2>
+
+- #### form
+  - 优化 `input` 数字输入框在前置后置结构中的样式 # I7KTQB
+- #### layer
+  - 修复 设置 `scrollbar` 属性禁用页面滚动条时，点击最大化再还原导致滚动条又重新出现的问题 # I7NTGX
+  - 修复 弹层容器中的 `id` 值与其他弹层索引值相同时，导致关闭弹层存在冲突问题 # I7PF0O
+- #### upload
+  - 修复 `auto: false` 时，打开文件选择框并点击取消后，导致文件上传失效的问题 # I7NU31
+- #### treeTable
+  - 新增 `tree.data.cascade` 属性，用于设置复选的级联方式，默认 `all` # 1309
+  - 修复 右侧固定列选中背景色没有和主体选中状态保持同步的问题 # I7NVCU
+  - 调整 树形转平铺的方法，保留节点的 `children` 信息 # 1309
+  - 调整 重载时的参数拷贝，由默认深拷贝换成默认浅拷贝，以便与 table 组件保持一致 # 1309/I7NN0O
+- #### tree
+  - 优化 `checked` 属性赋值机制，若初始数据源存在该属性，才对其进行动态赋值
+  - 优化 `spread` 属性赋值机制，若初始数据源存在该属性，则展开和收缩时，自动对其更新状态值
+- #### 其他
+  - 修正 code 中部分单词拼写错误 # 1310
+
+### 下载： [layui-v2.8.12.zip](https://gitee.com/layui/layui/attach_files/1482367/download)
+
+---
+
 <h2 id="2.8.11" class="ws-anchor">
   2.8.11 
   <span class="layui-badge-rim">2023-07-13</span>
