@@ -5,11 +5,69 @@ toc: true
  
 # 更新日志
 
-<h2 class="layui-hide" lay-toc="{href: '/docs/2.8/versions.html', title: '2.8.x', hot: true}">
+<h2 class="layui-hide" lay-toc="{href: '/docs/2/versions.html', title: '2.8.x', hot: true}">
   2.8.x
 </h2>
 
 > 导读：📑 [Layui 2.8 《升级指南》](/notes/2.8/upgrade-guide.html) · 📑 [Layui 新版文档站上线初衷](/notes/2.8/news.html)
+
+
+<h2 id="2.8.18" class="ws-anchor">
+  2.8.18
+  <span class="layui-badge-rim">2023-10-31</span>
+</h2>
+
+- #### form
+  - 新增 `input` 数字输入框组件的特定属性 `lay-precision`，用于设置数值精度 # 1375/I81SY4
+  - 优化 `input` 数字输入框组件的失去焦点对值的有效范围约束 # 1375/I7KU6V
+  - 优化 `input` 数字输入框组件当值达到临界点时加减按钮的禁用视觉效果 # 1375
+  - 优化 `input` 数字输入框当表单验证失败时的边框颜色 # 1371
+- #### nav
+  - 新增 垂直导航菜单展开和收缩时的过渡动画 # 1407
+  - 新增 `lay-accordion` 属性支持，用于开启手风琴，兼容旧版 `lay-shrink="all"` # 1384
+- #### layer
+  - 新增 `photos` 层的鼠标滚轮缩放功能 # I7ZAE8
+  - 优化 移动端定位 # 1376
+- #### table
+  - 新增 `complete` 属性，当数据接口请求完成后执行，无论成功还是失败均会触发 # 1379
+  - 修复 `ignoreExport` 表头属性值效果与文档不符的问题 # I86DBY
+  - 修复 `type: 'radio'` 且为右侧固定列时，选择效果无效的问题 # 1406
+  - 优化 鼠标在固定列滚轮时无法触发滚动条的问题 # I8CGZH
+  - 优化 某些情况在 Firefox 的报错问题
+- #### treeTable
+  - 修复 `treeTable.removeNode()` 在开启 `data` 模式时删除异常问题 # I7Z0AB/I82E2S
+  - 修复 `treeTable.setRowChecked()` 方法未逐层展开上级节点的问题 # 1385/I84RUT
+  - 修复 `treeTable.addNodes()` 新增根节点时出现的报错问题 # 1414
+  - 修复 数据格式为简单类型时 IE9+ 兼容问题 # 1415/I8C04Y
+- #### upload
+  - 修复 `unified: true` 时的报错问题 # 1391
+  - 优化 渲染入口逻辑，以解决因重复渲染导致的若干问题 # 1391
+  - 优化 实例的 `reload` 方法，可更好地进行完整重载 # 1391
+- #### dropdown / menu
+  - 新增 `accordion` 属性，开启手风琴效果（menu: 主容器设置 `lay-accordion` 属性） # 1397
+  - 新增 折叠展开动画效果 # 1397
+- #### laydate
+  - 优化 `rangeLinked` 属性开启时，点击目标元素可重新渲染的问题 # 1391
+  - 优化 `type` 为 `time,datetime` 选择器时，「现在」按钮的禁用状态判断条件 # I828CD
+- #### laypage
+  - 新增 `limitTemplet` 属性，用于自定义条目模板 # I80AHZ
+  - 新增 `skipText` 属性，用于自定义跳页区域文本 # I80AHZ
+- #### carousel
+  - 优化 轮播切换时的动画效果 # 1378/I82STP
+- #### rate / slider
+  - 优化 代码细节 # 1374
+- #### code
+  - 新增 `code` 属性，用于设置原始 code 值，优先级高于目标元素中的内容 # 1391
+  - 优化 预览区域显示效果 # 1398
+  - 优化 其他若干小问题 # 1391
+- #### 其他
+  - 新增 Source Maps 支持  # 1404/I89W5P
+  - 新增 lay 模块部分函数 JSDoc 注释和示例 #1401
+  - 优化 `<hr>` 全局样式优先级 # I86R6G
+
+### 下载： [layui-v2.8.18.zip](https://gitee.com/layui/layui/attach_files/1570299/download)
+
+---
 
 <h2 id="2.8.17" class="ws-anchor">
   2.8.17
@@ -440,7 +498,7 @@ toc: true
 </h2>
 
 从 `2.8.0-beta.1` 到 `rc.16`，经二十个预览版的持续迭代，Layui 终于迎来了：`2.8.0` 正式版。
-<br>同时，新域名下的 [新文档站](https://layui.dev) 也正式上线（导读：[Layui 新版文档站上线初衷](./@note/2.8/news.html)），新版文档亦开源在 [Github](https://github.com/layui/layui/tree/main/docs) 以供协同维护。
+<br>同时，新域名下的 [新文档站](https://layui.dev) 也正式上线（导读：[Layui 新版文档站上线初衷](/notes/2.8/news.html)），新版文档亦开源在 [Github](https://github.com/layui/layui/tree/main/docs) 以供协同维护。
 
 正是开发者们依然坚持的热爱，促使了 `Layui` 这一朴实的归来。
 

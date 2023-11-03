@@ -573,8 +573,13 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         '{'+ lineStyle +'}',
         '.layui-table-cell{height: auto; max-height: '+ cellMaxHeight +'; white-space: normal; text-overflow: clip;}',
         '> td:hover > .layui-table-cell{overflow: auto;}'
-      ], function(i, val) {
-        text.push(trClassName + ' ' + val);
+      ].concat(
+        device.ie ? [
+          '.layui-table-edit{height: '+ cellMaxHeight +';}',
+          'td[data-edit]:hover:after{height: '+ cellMaxHeight +';}'
+        ] : []
+      ), function(i, val) {
+        val && text.push(trClassName + ' ' + val);
       });
     })(options.lineStyle);
 
@@ -892,6 +897,9 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
   // 重置表格尺寸/结构
   Class.prototype.resize = function(){
     var that = this;
+
+    if (!that.layMain) return;
+
     that.fullSize(); // 让表格铺满
     that.setColsWidth(); // 自适应列宽
     that.scrollPatch(); // 滚动条补丁
@@ -1028,6 +1036,9 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         dataType: options.dataType || 'json',
         jsonpCallback: options.jsonpCallback,
         headers: options.headers || {},
+        complete: function(xhr,ts){
+          typeof options.complete === 'function' && options.complete(xhr, ts);
+        },
         success: function(res){
           // 若有数据解析的回调，则获得其返回的数据
           if(typeof options.parseData === 'function'){
@@ -1603,8 +1614,12 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       radio: 'layTableRadio',
       checkbox: 'layTableCheckbox'
     }[opts.type] || 'checkbox') +'"]:not(:disabled)');
+    var checkedSameElem = checkedElem.last();
+    var fixRElem = checkedSameElem.closest(ELEM_FIXR);
 
-    checkedElem.prop('checked', getChecked(checkedElem.last().prop('checked')));
+    ( opts.type === 'radio' && fixRElem.hasClass(HIDE)
+      ?  checkedElem.first()
+    : checkedElem ).prop('checked', getChecked(checkedSameElem.prop('checked')));
 
     that.syncCheckAll();
     that.renderForm(opts.type);
@@ -2608,6 +2623,16 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
       layer.close(that.tipsIndex);
     });
+
+    // 固定列滚轮事件 - 临时兼容方案
+    that.layFixed.find(ELEM_BODY).on('mousewheel DOMMouseScroll', function(e) {
+      var delta = e.originalEvent.wheelDelta || -e.originalEvent.detail;
+      var scrollTop = that.layMain.scrollTop();
+      var step = 30;
+
+      e.preventDefault();
+      that.layMain.scrollTop(scrollTop + (delta > 0 ? -step : step));
+    });
   };
 
   // 全局事件
@@ -2890,8 +2915,11 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         } else {
           table.eachCols(id, function(i3, item3){
             if(item3.ignoreExport === false || item3.field && item3.type == 'normal'){
-              // 不导出隐藏列
-              if(item3.hide || item3.ignoreExport){
+              // 不导出隐藏列，除非设置 ignoreExport 强制导出
+              if (
+                (item3.hide && item3.ignoreExport !== false) ||
+                item3.ignoreExport === true // 忽略导出
+              ) {
                 if(i1 == 0) fieldsIsHide[item3.field] = true; // 记录隐藏列
                 return;
               }
