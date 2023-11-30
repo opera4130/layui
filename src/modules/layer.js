@@ -1288,9 +1288,9 @@ layer.closeAll = function(type, callback){
 };
 
 // 根据弹层类型关闭最近打开的层
-layer.closeLast = function(type){
+layer.closeLast = function(type, callback){
   type = type || 'page';
-  layer.close($('.layui-layer-'+ type +':last').attr("times"));
+  layer.close($('.layui-layer-'+ type +':last').attr("times"), callback);
 };
 
 
@@ -1598,6 +1598,7 @@ layer.photos = function(options, loop, key){
       } else {
         zoomElem.eq(1).trigger('click');
       }
+      e.preventDefault();
     });
 
   };

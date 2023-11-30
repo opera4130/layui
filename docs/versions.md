@@ -2,15 +2,89 @@
 title: 更新日志
 toc: true
 ---
- 
+
 # 更新日志
 
-<h2 class="layui-hide" lay-toc="{href: '/docs/2/versions.html', title: '2.8.x', hot: true}">
-  2.8.x
+> 导读：📑 [Layui 2.8+ 《升级指南》](/notes/2.8/upgrade-guide.html) · 📑 [Layui 新版文档站上线初衷](/notes/2.8/news.html)
+
+<h2 id="2.9.x" lay-toc="{title: '2.9.x'}"></h2>
+
+<h2 id="2.9.0" class="ws-anchor">
+  2.9.0
+  <span class="layui-badge-rim" style="color: #16b777;">稳定版</span>
+  <span class="layui-badge-rim">2023-11-29</span>
 </h2>
 
-> 导读：📑 [Layui 2.8 《升级指南》](/notes/2.8/upgrade-guide.html) · 📑 [Layui 新版文档站上线初衷](/notes/2.8/news.html)
+`2.9.x` 对 `2.8.18` 向下兼容，可覆盖升级。
 
+- #### table
+  - 修复 `complete` 属性导致 `$.ajaxSetup()` 的 `complete` 失效的问题 #1423 @Sight-wcg
+  - 修复 单元格展开再收缩后，当列通过拖拽改变过宽度，列存在概率性错位的问题 [28347fc]
+  - 修复 合计行单元格展开异常的问题 #Gitee-I8FH3K
+  - 优化 `height` 属性高度铺满语法中不支持浮点型数值的问题 #Gitee-I8DSPH
+  - 优化 关闭单元格多行展开状态后，悬停状态样式未移除的问题 #1425 @Sight-wcg
+  - 优化 在末行展开单元格后，出现的固定列水平未对其的问题 [85add62]
+  - 优化 当数据值为 `0,undefined,null` 且开启列模板，编辑单元格会带入模板字符的问题 [1d408f0]
+- #### util
+  - 优化 `util.on()` 方法，提升参数的灵活性和代码的可读性 [d74abb4] [92c8580]
+- #### layer
+  - 优化 `layer.closeLast()` 方法，给第二个参数增加回调函数 [ab4ded2]
+- #### tree
+  - 修复 `title` 有特殊字符时点击编辑的显示问题 #1432 @Sight-wcg
+- #### colorpicker
+  - 优化 内部输入框取值，移除字符串两侧的空白字符 #1427 @Sight-wcg
+- #### 其他
+  - 优化 `lay.clipboard.writeText()` 逻辑，以适配无写入权限时的场景 #1421 @Sight-wcg
+
+### 下载： [layui-v2.9.0.zip](https://gitee.com/layui/layui/attach_files/1597365/download)
+
+<script>
+(function(){
+  // 解析更新日志关联链接
+  var elem = document.querySelectorAll('#WS-text li');
+  elem.forEach(function (item) {
+    item.childNodes.forEach(function (node) {
+      if (node.nodeType === 3) {
+        var nodeValue = node.nodeValue;
+        var types = [
+          {
+            rule: /(#)Gitee-(\S+)/g,
+            href: 'https://gitee.com/layui/layui/issues/'
+          },
+          {
+            rule: /(#)(\d+)/g,
+            href: 'https://github.com/layui/layui/pull/'
+          },
+          {
+            rule: /\[()([\d\w]+)\]/g,
+            href: 'https://github.com/layui/layui/commit/'
+          },
+          {
+            rule: /(@)(\S+)/g,
+            href: 'https://github.com/'
+          }
+        ];
+        var i = 0;
+        var sNode = document.createElement('span');
+        for (; i < types.length; i++) {
+          if (types[i].rule.test(nodeValue)) {
+            nodeValue = nodeValue.replace(types[i].rule, function(s, s1, s2) {
+              return '<a href="'+ types[i].href + s2 +'" target="_blank">'+ s1 + s2 +'</a>';
+            });
+          }
+        }
+        sNode.innerHTML = nodeValue;
+        node.parentNode.insertBefore(sNode, node);
+        node.parentNode.removeChild(node);
+      }
+    });
+  });
+})();
+</script>
+
+---
+
+<h2 id="2.8.x" lay-toc="{title: '2.8.x'}"></h2>
 
 <h2 id="2.8.18" class="ws-anchor">
   2.8.18
@@ -222,7 +296,7 @@ toc: true
 ---
 
 <h2 id="2.8.11" class="ws-anchor">
-  2.8.11 
+  2.8.11
   <span class="layui-badge-rim">2023-07-13</span>
 </h2>
 
@@ -243,7 +317,7 @@ toc: true
 ---
 
 <h2 id="2.8.10" class="ws-anchor">
-  2.8.10 
+  2.8.10
   <span class="layui-badge-rim">2023-07-03</span>
 </h2>
 
@@ -254,7 +328,7 @@ toc: true
 ---
 
 <h2 id="2.8.9" class="ws-anchor">
-  2.8.9 
+  2.8.9
   <span class="layui-badge-rim">2023-07-03</span>
 </h2>
 
@@ -277,7 +351,7 @@ toc: true
 ---
 
 <h2 id="2.8.8" class="ws-anchor">
-  2.8.8 
+  2.8.8
   <span class="layui-badge-rim">2023-06-20</span>
 </h2>
 
@@ -297,7 +371,7 @@ toc: true
 ---
 
 <h2 id="2.8.7" class="ws-anchor">
-  2.8.7 
+  2.8.7
   <span class="layui-badge-rim">2023-06-16</span>
 </h2>
 
@@ -323,7 +397,7 @@ toc: true
 ---
 
 <h2 id="2.8.6" class="ws-anchor">
-  2.8.6 
+  2.8.6
   <span class="layui-badge-rim">2023-06-08</span>
 </h2>
 
@@ -354,7 +428,7 @@ toc: true
 ---
 
 <h2 id="2.8.4" class="ws-anchor">
-  2.8.4 
+  2.8.4
   <span class="layui-badge-rim">2023-05-30</span>
 </h2>
 
@@ -373,7 +447,7 @@ toc: true
   - 优化 `row` 事件机制，若目标元素为 `checkbox,radio`，则不触发 `row` 事件
   - 优化 外层容器的高度，不再设置一个固定值，内部元素将根据 `height` 属性值自动撑满
   - 优化 底部边框问题
-- #### treeTable 
+- #### treeTable
   - 新增 节点折叠状态记忆功能 # 1260/I777CJ
   - 新增 `customName.icon` 属性，用于自定义图标的属性名称 # 1260/I73BQU
   - 新增 `async.format` 回调函数，用于处理异步子节点数据，优先级高于 `async.url` # 1260
@@ -402,7 +476,7 @@ toc: true
 ---
 
 <h2 id="2.8.3" class="ws-anchor">
-  2.8.3 
+  2.8.3
   <span class="layui-badge-rim">2023-05-15</span>
 </h2>
 
@@ -411,7 +485,7 @@ toc: true
 - #### form
   - 新增 `checkbox` 的标题模板支持，可在下一个兄弟元素中加上 `lay-checkbox` 绑定 # I72HSK/I6YDGT
   - 修复 `radio` 经浏览器翻译成别的语言后出现的显示异常问题 # I6ZA12
-  - 优化 `checkbox` 的边距细节 
+  - 优化 `checkbox` 的边距细节
   - 优化 `checkbox` 标签风格的边框瑕疵 # I70OFE
   - **调整** 内置校验规则，仅当非空时进行校验，避免强制携带必填(`required`)的校验规则 # I72CTI
 - #### table
@@ -438,7 +512,7 @@ toc: true
 ---
 
 <h2 id="2.8.2" class="ws-anchor">
-  2.8.2 
+  2.8.2
   <span class="layui-badge-rim">2023-05-04</span>
 </h2>
 
@@ -478,7 +552,7 @@ toc: true
 ---
 
 <h2 id="2.8.1" class="ws-anchor">
-  2.8.1 
+  2.8.1
   <span class="layui-badge-rim">2023-04-25</span>
 </h2>
 
@@ -493,7 +567,7 @@ toc: true
 ---
 
 <h2 id="2.8.0" class="ws-anchor">
-  2.8.0 
+  2.8.0
   <span class="layui-badge-rim">2023-04-24</span>
 </h2>
 
