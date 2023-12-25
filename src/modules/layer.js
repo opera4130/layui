@@ -671,13 +671,15 @@ Class.pt.tips = function(){
   };
   
   // 辨别 tips 的方位
+  // 21 为箭头大小 8*2 + 箭头相对父元素的top偏移 5
   goal.where = [function(){ // 上        
     goal.autoLeft();
     goal.tipTop = goal.top - layArea[1] - 10;
     tipsG.removeClass('layui-layer-TipsB').addClass('layui-layer-TipsT').css('border-right-color', config.tips[1]);
   }, function(){ // 右
     goal.tipLeft = goal.left + goal.width + 10;
-    goal.tipTop = goal.top;
+    goal.tipTop = goal.top - (goal.height * 0.75 < 21 ? 21 - goal.height * 0.5 : 0);
+    goal.tipTop = Math.max(goal.tipTop, 0);
     tipsG.removeClass('layui-layer-TipsL').addClass('layui-layer-TipsR').css('border-bottom-color', config.tips[1]); 
   }, function(){ // 下
     goal.autoLeft();
@@ -685,7 +687,8 @@ Class.pt.tips = function(){
     tipsG.removeClass('layui-layer-TipsT').addClass('layui-layer-TipsB').css('border-right-color', config.tips[1]);
   }, function(){ // 左
     goal.tipLeft = goal.left - layArea[0] - 10;
-    goal.tipTop = goal.top;
+    goal.tipTop = goal.top - (goal.height * 0.75 < 21 ? 21 - goal.height * 0.5 : 0);
+    goal.tipTop = Math.max(goal.tipTop, 0);
     tipsG.removeClass('layui-layer-TipsR').addClass('layui-layer-TipsL').css('border-bottom-color', config.tips[1]);
   }];
   goal.where[guide-1]();
@@ -1601,6 +1604,28 @@ layer.photos = function(options, loop, key){
       e.preventDefault();
     });
 
+    // 滑动切换图片事件，仅限 layui 中 
+    if(window.layui || window.lay){
+      var lay = window.layui.lay || window.lay;
+      var touchEndCallback = function(e, state){
+        var duration = Date.now() - state.timeStart;
+        var speed = state.distanceX / duration;
+        var threshold = win.width() / 3;
+        var shouldSwipe = Math.abs(speed) > 0.25 || Math.abs(state.distanceX) > threshold;
+        if(!shouldSwipe) return;
+        if(state.direction === 'left'){
+          dict.imgnext(true);
+        }else if(state.direction === 'right'){
+          dict.imgprev(true);
+        }
+      }
+
+      $.each([that.shadeo, dict.main], function(i, elem){
+        lay.touchSwipe(elem, {
+          onTouchEnd: touchEndCallback
+        })
+      })
+    }
   };
   
   // 图片预加载
@@ -1761,7 +1786,7 @@ ready.run = function(_$){
 // 加载方式
 window.layui && layui.define ? (
   layer.ready(),
-  layui.define('jquery', function(exports){ // layui
+  layui.define(['jquery','lay'], function(exports){ // layui
     layer.path = layui.cache.dir;
     ready.run(layui.$);
 
