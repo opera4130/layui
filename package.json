@@ -26,7 +26,6 @@
   ],
   "scripts": {
     "build": "gulp",
-    "release": "npm run build && npm rum release-zip",
     "release-zip": "gulp release"
   },
   "devDependencies": {
