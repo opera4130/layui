@@ -356,6 +356,9 @@ choose: function(obj){
     // delete files[index]; //删除列表中对应的文件，一般在某个事件中使用
   });
 }
+
+// 获取本次选取的文件，大文件建议用此方法获取文件信息(2.9.9+)
+obj.getChooseFiles();
 ```
 
 详细用法参考：[#示例](#demo-files-table)
@@ -384,6 +387,37 @@ before: function(obj){ // obj 参数同 choose
     return false;
   }
   */
+}
+
+// 返回 jQuery Deferred.promise 对象或 JS 原生 Promise 对象，reject 表明阻止上传(2.9.11+)
+// Promise
+before: function(obj){
+  return new Promise(function(resolve, reject){
+    setTimeout(function(){
+      console.log('before_async_task', obj);
+      resolve();
+    }, 1000)
+  })
+}
+
+// Deferred
+before: function(obj){
+  return $.Deferred(function(deferred){
+    setTimeout(function(){
+      console.log('before_async_task', obj);
+      deferred.resolve();
+    }, 1000)
+  }).promise();
+}
+
+// Deferred2
+before: function(obj){
+  var deferred = $.Deferred();
+  setTimeout(function(){
+    console.log('before_async_task', obj);
+    deferred.resolve();
+  }, 1000)
+  return deferred.promise();
 }
 ```
 

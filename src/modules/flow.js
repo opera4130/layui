@@ -19,15 +19,19 @@ layui.define('jquery', function(exports){
     var scrollElem = $(options.scrollElem || document); // 滚动条所在元素
     var threshold = 'mb' in options ? options.mb : 50; // 临界距离
     var isAuto = 'isAuto' in options ? options.isAuto : true; // 否自动滚动加载
+    var moreText = options.moreText || "加载更多"; // 手动加载时，加载更多按钮文案
     var end = options.end || '没有更多了'; // “末页”显示文案
     var direction = options.direction || 'bottom';
     var isTop = direction === 'top';
+
+    // 重复执行时清理旧的事件绑定
+    that._cleanup(elem, scrollElem);
 
     //滚动条所在元素是否为document
     var notDocument = options.scrollElem && options.scrollElem !== document;
 
     //加载更多
-    var ELEM_TEXT = '<cite>加载更多</cite>'
+    var ELEM_TEXT = '<cite>' + moreText + '</cite>'
     ,more = $('<div class="layui-flow-more"><a href="javascript:;">'+ ELEM_TEXT +'</a></div>');
 
     if(!elem.find('.layui-flow-more')[0]){
@@ -67,7 +71,7 @@ layui.define('jquery', function(exports){
     done();
 
     //不自动滚动加载
-    more.find('a').on('click', function(){
+    more.find('a').on('click.flow', function(){
       var othis = $(this);
       if(isOver) return;
       lock || done();
@@ -84,7 +88,7 @@ layui.define('jquery', function(exports){
 
     if(!isAuto) return that;
 
-    scrollElem.on('scroll', function(){
+    scrollElem.on('scroll.flow', function(){
       var othis = $(this), top = othis.scrollTop();
 
       if(timer) clearTimeout(timer);
@@ -176,7 +180,7 @@ layui.define('jquery', function(exports){
 
     if(!haveScroll){
       var timer;
-      scrollElem.on('scroll', function(){
+      scrollElem.on('scroll.lazyimg' , function(){
         var othis = $(this);
         if(timer) clearTimeout(timer)
         timer = setTimeout(function(){
@@ -187,6 +191,13 @@ layui.define('jquery', function(exports){
     }
     return render;
   };
+
+  // 重复执行时清理旧的事件绑定，私有方法
+  Flow.prototype._cleanup = function(elem, scrollElem){
+    scrollElem.off('scroll.flow').off('scroll.lazyimg');
+    elem.find('.layui-flow-more').find('a').off('click.flow');
+    elem.html('');
+  }
 
   //暴露接口
   exports('flow', new Flow());
