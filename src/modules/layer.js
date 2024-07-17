@@ -2,7 +2,7 @@
  * layer
  * 通用 Web 弹出层组件
  */
-
+//@ts-ignore
 ;!function(window, undefined){
 "use strict";
 
@@ -30,6 +30,7 @@ var ready = {
     removeFocus: true
   }, 
   end: {}, 
+  beforeEnd: {},
   events: {resize: {}}, 
   minStackIndex: 0,
   minStackArr: [],
@@ -858,6 +859,16 @@ Class.pt.move = function(){
   return that;
 };
 
+Class.pt.btnLoading = function(btnElem, isLoading){
+  if(isLoading){
+    var loadingTpl = '<i class="layui-layer-btn-loading-icon layui-icon layui-icon-loading layui-anim layui-anim-rotate layui-anim-loop"></i>';
+    if(btnElem.find('.layui-layer-btn-loading-icon')[0]) return;
+    btnElem.addClass('layui-layer-btn-is-loading').attr({disabled: ''}).prepend(loadingTpl);
+  }else{
+    btnElem.removeClass('layui-layer-btn-is-loading').removeAttr('disabled').find('.layui-layer-btn-loading-icon').remove();
+  }
+}
+
 Class.pt.callback = function(){
   var that = this, layero = that.layero, config = that.config;
   that.openLayer();
@@ -874,18 +885,42 @@ Class.pt.callback = function(){
   
   // 按钮
   layero.find('.'+ doms[6]).children('a').on('click', function(){
-    var index = $(this).index();
-    if(index === 0){
-      if(config.yes){
-        config.yes(that.index, layero, that);
-      } else if(config['btn1']){
-        config['btn1'](that.index, layero, that);
-      } else {
+    var btnElem = $(this);
+    var index = btnElem.index();
+    if(btnElem.attr('disabled')) return;
+
+    // 若为异步按钮
+    if(config.btnAsync){
+      var btnCallback = index === 0 ? (config.yes || config['btn1']) : config['btn'+(index+1)];
+      that.loading = function(isLoading){
+        that.btnLoading(btnElem, isLoading);
+      }
+
+      if(btnCallback){
+        ready.promiseLikeResolve(btnCallback.call(config, that.index, layero, that))
+          .then(function(result){
+            if(result !== false){
+              layer.close(that.index)
+            }
+          }, function(reason){
+             reason !== undefined && window.console && window.console.error('layer error hint: ' + reason);
+          });
+      }else{
         layer.close(that.index);
       }
-    } else {
-      var close = config['btn'+(index+1)] && config['btn'+(index+1)](that.index, layero, that);
-      close === false || layer.close(that.index);
+    } else { // 普通按钮
+      if(index === 0){
+        if(config.yes){
+          config.yes(that.index, layero, that);
+        } else if(config['btn1']){
+          config['btn1'](that.index, layero, that);
+        } else {
+          layer.close(that.index);
+        }
+      } else {
+        var close = config['btn'+(index+1)] && config['btn'+(index+1)](that.index, layero, that);
+        close === false || layer.close(that.index);
+      }
     }
   });
   
@@ -925,6 +960,7 @@ Class.pt.callback = function(){
   });
 
   config.end && (ready.end[that.index] = config.end);
+  config.beforeEnd && (ready.beforeEnd[that.index] = $.proxy(config.beforeEnd, config, layero, that.index, that));
 };
 
 // for ie6 恢复 select
@@ -997,6 +1033,18 @@ ready.restScrollbar = function(index){
     doms.html.removeAttr('layer-full');
   }
 };
+
+// 类似 Promise.resolve
+ready.promiseLikeResolve = function(value){
+  var deferred = $.Deferred();
+
+  if(value && typeof value.then === 'function'){
+    value.then(deferred.resolve, deferred.reject);
+  }else{
+    deferred.resolve(value);
+  }
+  return deferred.promise();
+}
 
 /** 内置成员 */
 
@@ -1219,87 +1267,104 @@ layer.close = function(index, callback){
 
   if(!layero[0]) return;
 
-  // 关闭动画
-  var closeAnim = ({
-    slideDown: 'layer-anim-slide-down-out',
-    slideLeft: 'layer-anim-slide-left-out',
-    slideUp: 'layer-anim-slide-up-out',
-    slideRight: 'layer-anim-slide-right-out'
-  })[options.anim] || 'layer-anim-close';
-
-  // 移除主容器
-  var remove = function(){
-    var WRAP = 'layui-layer-wrap';
-
-    // 是否关闭时隐藏弹层容器
-    if(hideOnClose){
-      layero.removeClass('layer-anim '+ closeAnim);
-      return layero.hide();
-    }
-
-    // 是否为页面捕获层
-    if(type === ready.type[1] && layero.attr('conType') === 'object'){
-      layero.children(':not(.'+ doms[5] +')').remove();
-      var wrap = layero.find('.'+WRAP);
-      for(var i = 0; i < 2; i++){
-        wrap.unwrap();
+  var executor = function(){
+    // 关闭动画
+    var closeAnim = ({
+      slideDown: 'layer-anim-slide-down-out',
+      slideLeft: 'layer-anim-slide-left-out',
+      slideUp: 'layer-anim-slide-up-out',
+      slideRight: 'layer-anim-slide-right-out'
+    })[options.anim] || 'layer-anim-close';
+  
+    // 移除主容器
+    var remove = function(){
+      var WRAP = 'layui-layer-wrap';
+  
+      // 是否关闭时隐藏弹层容器
+      if(hideOnClose){
+        layero.removeClass('layer-anim '+ closeAnim);
+        return layero.hide();
       }
-      wrap.css('display', wrap.data('display')).removeClass(WRAP);
-    } else {
-      // 低版本 IE 回收 iframe
-      if(type === ready.type[2]){
-        try {
-          var iframe = $('#'+ doms[4] + index)[0];
-          iframe.contentWindow.document.write('');
-          iframe.contentWindow.close();
-          layero.find('.'+doms[5])[0].removeChild(iframe);
-        } catch(e){}
+  
+      // 是否为页面捕获层
+      if(type === ready.type[1] && layero.attr('conType') === 'object'){
+        layero.children(':not(.'+ doms[5] +')').remove();
+        var wrap = layero.find('.'+WRAP);
+        for(var i = 0; i < 2; i++){
+          wrap.unwrap();
+        }
+        wrap.css('display', wrap.data('display')).removeClass(WRAP);
+      } else {
+        // 低版本 IE 回收 iframe
+        if(type === ready.type[2]){
+          try {
+            var iframe = $('#'+ doms[4] + index)[0];
+            iframe.contentWindow.document.write('');
+            iframe.contentWindow.close();
+            layero.find('.'+doms[5])[0].removeChild(iframe);
+          } catch(e){}
+        }
+        layero[0].innerHTML = '';
+        layero.remove();
       }
-      layero[0].innerHTML = '';
-      layero.remove();
-    }
-
-    typeof ready.end[index] === 'function' && ready.end[index]();
-    delete ready.end[index];
-    typeof callback === 'function' && callback();
-
-    // 移除 reisze 事件
-    if(ready.events.resize[index]){
-      win.off('resize', ready.events.resize[index]);
-      delete ready.events.resize[index];
-    }
-  };
-  // 移除遮罩
-  var shadeo = $('#'+ doms.SHADE + index);
-  if((layer.ie && layer.ie < 10) || !options.isOutAnim){
-    shadeo[hideOnClose ? 'hide' : 'remove']();
-  }else{
-    shadeo.css({opacity: 0});
-    setTimeout(function(){
+  
+      typeof ready.end[index] === 'function' && ready.end[index]();
+      delete ready.end[index];
+      typeof callback === 'function' && callback();
+  
+      // 移除 reisze 事件
+      if(ready.events.resize[index]){
+        win.off('resize', ready.events.resize[index]);
+        delete ready.events.resize[index];
+      }
+    };
+    // 移除遮罩
+    var shadeo = $('#'+ doms.SHADE + index);
+    if((layer.ie && layer.ie < 10) || !options.isOutAnim){
       shadeo[hideOnClose ? 'hide' : 'remove']();
-    }, 350);
+    }else{
+      shadeo.css({opacity: 0});
+      setTimeout(function(){
+        shadeo[hideOnClose ? 'hide' : 'remove']();
+      }, 350);
+    }
+    
+    // 是否允许关闭动画
+    if(options.isOutAnim){
+      layero.addClass('layer-anim '+ closeAnim);
+    }
+    
+    layer.ie == 6 && ready.reselect();
+    ready.restScrollbar(index); 
+    
+    // 记住被关闭层的最小化堆叠坐标
+    if(typeof layero.attr('minLeft') === 'string'){
+      ready.minStackIndex--;
+      ready.minStackArr.push(layero.attr('minLeft'));
+    }
+    
+    if((layer.ie && layer.ie < 10) || !options.isOutAnim){
+      remove()
+    } else {
+      setTimeout(function(){
+        remove();
+      }, 200);
+    }
   }
-  
-  // 是否允许关闭动画
-  if(options.isOutAnim){
-    layero.addClass('layer-anim '+ closeAnim);
-  }
-  
-  layer.ie == 6 && ready.reselect();
-  ready.restScrollbar(index); 
-  
-  // 记住被关闭层的最小化堆叠坐标
-  if(typeof layero.attr('minLeft') === 'string'){
-    ready.minStackIndex--;
-    ready.minStackArr.push(layero.attr('minLeft'));
-  }
-  
-  if((layer.ie && layer.ie < 10) || !options.isOutAnim){
-    remove()
-  } else {
-    setTimeout(function(){
-      remove();
-    }, 200);
+
+  if(!hideOnClose && typeof ready.beforeEnd[index] === 'function'){
+    ready.promiseLikeResolve(ready.beforeEnd[index]())
+      .then(function(result){
+        if(result !== false){
+          delete ready.beforeEnd[index];
+          executor();
+        }
+      }, function(reason){
+        reason !== undefined && window.console && window.console.error('layer error hint: ' + reason);
+      });
+  }else{
+    delete ready.beforeEnd[index];
+    executor();
   }
 };
 

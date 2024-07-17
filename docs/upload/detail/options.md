@@ -389,35 +389,36 @@ before: function(obj){ // obj 参数同 choose
   */
 }
 
-// 返回 jQuery Deferred.promise 对象或 JS 原生 Promise 对象，reject 表明阻止上传(2.9.11+)
+// 返回 jQuery Deferred 对象或 JS 原生 Promise 对象，false 或 Promise.reject 表明阻止上传(2.9.11+)
 // Promise
+/** @type {(obj: object) => boolean | JQueryDeferred<boolean> | Promise<boolean>} */
 before: function(obj){
   return new Promise(function(resolve, reject){
     setTimeout(function(){
       console.log('before_async_task', obj);
-      resolve();
+      resolve(true);
     }, 1000)
   })
 }
 
 // Deferred
 before: function(obj){
-  return $.Deferred(function(deferred){
+  return $.Deferred(function(defer){
     setTimeout(function(){
       console.log('before_async_task', obj);
-      deferred.resolve();
+      defer.resolve(true);
     }, 1000)
   }).promise();
 }
 
 // Deferred2
 before: function(obj){
-  var deferred = $.Deferred();
+  var defer = $.Deferred();
   setTimeout(function(){
     console.log('before_async_task', obj);
-    deferred.resolve();
+    defer.resolve(true);
   }, 1000)
-  return deferred.promise();
+  return defer.promise();
 }
 ```
 
@@ -511,12 +512,17 @@ allDone: function(obj){
 <td>error</td>
 <td colspan="3">
   
-执行上传请求出现异常的回调（一般为网络异常、URL 404等）。返回两个参数如下：
+执行上传请求出现异常的回调（一般为网络异常、URL 404等）。返回三个参数如下：
+- `index`： 当前文件的索引
+- `upload`： 重新上传的方法
+- `res`： 返回值（纯文本）<sup>2.9.12+</sup>
 
 ```
-error: function(index, upload){
+error: function(index, upload, res){
   console.log(index); // 当前文件的索引
   // upload(); 重新上传的方法
+  console.log(res);  // 返回值（纯文本）
+  console.log(JSON.parse(res));  // 返回值（json）
 }
 ```
 

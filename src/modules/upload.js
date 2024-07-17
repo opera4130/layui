@@ -323,7 +323,7 @@ layui.define(['lay', 'layer'], function(exports){
               'Upload failed, please try again.',
               'status: '+ (e.status || '') +' - '+ (e.statusText || 'error')
             ].join('<br>'));
-            error(sets.index);
+            error(sets.index, e.responseText);
             allDone(sets.index);
             resetFileState(sets.file);
           }
@@ -386,21 +386,41 @@ layui.define(['lay', 'layer'], function(exports){
         }
       }, 30); 
     };
-    
+
+    // 强制返回的数据格式
+    var forceConvert = function(src) {
+      if(options.force === 'json'){
+        if(typeof src !== 'object'){
+          try {
+            return {
+              status: "CONVERTED",
+              data: JSON.parse(src)
+            };
+          } catch(e){
+            that.msg(text['data-format-error']);
+            return {
+              status: "FORMAT_ERROR",
+              data: {}
+            };
+          }
+        }
+      }
+      return { status: "DO_NOTHING", data: {} }
+    }
+
     // 统一回调
     var done = function(index, res){
       that.elemFile.next('.'+ ELEM_CHOOSE).remove();
       elemFile.value = '';
       
-      if(options.force === 'json'){
-        if(typeof res !== 'object'){
-          try {
-            res = JSON.parse(res);
-          } catch(e){
-            res = {};
-            return that.msg(text['data-format-error']);
-          }
-        }
+      var convert = forceConvert(res);
+
+      switch(convert.status) {
+        case "CONVERTED":
+          res = convert.data;
+          break;
+        case "FORMAT_ERROR":
+          return;
       }
       
       typeof options.done === 'function' && options.done(res, index || 0, function(files){
@@ -409,13 +429,24 @@ layui.define(['lay', 'layer'], function(exports){
     };
     
     // 统一网络异常回调
-    var error = function(index){
+    var error = function(index, res){
       if(options.auto){
         elemFile.value = '';
       }
+
+      var convert = forceConvert(res);
+
+      switch(convert.status) {
+        case "CONVERTED":
+          res = convert.data;
+          break;
+        case "FORMAT_ERROR":
+          return;
+      }
+
       typeof options.error === 'function' && options.error(index || 0, function(files){
         that.upload(files);
-      });
+      }, res);
     };
     
     var check;
@@ -471,20 +502,21 @@ layui.define(['lay', 'layer'], function(exports){
       }
       // 上传前的回调 - 如果回调函数明确返回 false 或 Promise.reject，则停止上传
       if(typeof options.before === 'function'){
-        var maybePromise = options.before(args);
-        if(maybePromise === false){
-          return;
-        }else if(typeof maybePromise === 'object' && typeof maybePromise.then === 'function'){
-          // 兼容 jQuery Deferred Promise 对象和原生 Promise 对象
-          // 类型检测不够完善，但足以满足此场景
-          maybePromise.then(function(result){
-            ready();
+        upload.util.promiseLikeResolve(options.before(args))
+          .then(function(result){
+            if(result !== false){
+              ready();
+            } else {
+              if(options.auto){
+                elemFile.value = '';
+              }
+            }
           }, function(error){
-            layui.hint().error(error);
+            if(options.auto){
+              elemFile.value = '';
+            }
+            error !== undefined && layui.hint().error(error);
           })
-        }else{
-          ready();
-        }
       }else{
         ready();
       }
@@ -781,6 +813,19 @@ layui.define(['lay', 'layer'], function(exports){
       size = formatSize / Math.pow(1024, index);
       size = size % 1 === 0 ? size : parseFloat(size.toFixed(precision));//保留的小数位数
       return size + unitArr[index];
+    },
+    /**
+     * 将给定的值转换为一个 JQueryDeferred 对象
+     */
+    promiseLikeResolve:function(value){
+      var deferred = $.Deferred();
+
+      if(value && typeof value.then === 'function'){
+        value.then(deferred.resolve, deferred.reject);
+      }else{
+        deferred.resolve(value);
+      }
+      return deferred.promise();
     }
   }
 

@@ -153,13 +153,49 @@ layui.use(['table', 'dropdown'], function(){
     },
     limit: 30,
     toolbar: '#toolbarDemo',
-    defaultToolbar: ['filter', 'exports', 'print', {
-      title: '帮助',
-      layEvent: 'LAYTABLE_TIPS',
-      icon: 'layui-icon-tips'
-    }],
+    defaultToolbar: [
+      'filter',
+      {
+        // 自定义导出 --- 2.9.12+
+        name: 'exports',
+        onClick: function(obj) {
+          var data = table.clearCacheKey(obj.data); // 清除临时字段
+          var options = obj.config;
+
+          // 弹出面板
+          obj.openPanel({
+            list: [
+              '<li data-type="csv">导出 CSV 文件</li>',
+              '<li data-type="xlsx">导出 XLSX 文件</li>'
+            ].join(''),
+            done: function(panel, list) {
+              list.on('click', function(){
+                var type = $(this).data('type')
+                if (type === 'csv') {
+                  table.exportFile(options.id, null, type); // 调用内置导出方法
+                } else if(type === 'xlsx') {
+                  // 自助处理导出 - 如借助 sheetjs 库或服务端导出
+                  // …
+                  layer.msg('自助处理导出 xlsx');
+                }
+
+              });
+            }
+          });
+        }
+      },
+      'print',
+      {
+        title: '帮助',
+        layEvent: 'LAYTABLE_TIPS',
+        icon: 'layui-icon-tips',
+        onClick: function(obj) {
+          layer.alert('Table for layui-v'+ layui.v);
+        }
+      }
+    ],
     // escape: false,
-    editTrigger: 'dblclick',
+    // editTrigger: 'dblclick',
     // cellMaxWidth: 320
     // cellExpandedWidth: 160, // 单元格默认展开后的宽度
     // cellExpandedStyle: 'tips', // 单元格默认展开风格
@@ -470,9 +506,6 @@ layui.use(['table', 'dropdown'], function(){
         });
         layer.msg('已设为单行');
         break;
-      case 'LAYTABLE_TIPS':
-        layer.alert('Table for layui-v'+ layui.v);
-        break;
     };
   });
 
@@ -522,18 +555,18 @@ layui.use(['table', 'dropdown'], function(){
   });
 
   // 行单击事件
-  table.on('row(test)', function(obj){
-    console.log(obj);
-    // layer.closeAll('tips');
+  table.on('row(test)', function(obj) {
+    console.log('onrow', obj); // 查看返回的对象成员
+
+    // 单击行设置选中
     obj.setRowChecked({
       // type: 'radio'
     });
-    // layer.msg('row 事件')
   });
 
   // 行双击事件
-  table.on('rowDouble(test)', function(obj){
-    console.log(obj);
+  table.on('rowDouble(test)', function(obj) {
+    console.log('onrowDouble', obj); // 查看返回的对象成员
   });
 
   // 单元格编辑事件
