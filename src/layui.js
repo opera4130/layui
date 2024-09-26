@@ -16,7 +16,7 @@
   };
 
   var Layui = function(){
-    this.v = '2.9.14'; // Layui 版本号
+    this.v = '2.9.17'; // Layui 版本号
   };
 
   // 识别预先可能定义的指定全局对象
@@ -24,8 +24,8 @@
 
   // 获取 layui 所在目录
   var getPath = function(){
-    var jsPath = doc.currentScript ? doc.currentScript.src : function(){
-      var js = doc.scripts;
+    var jsPath = (doc.currentScript && doc.currentScript.tagName.toUpperCase() === 'SCRIPT') ? doc.currentScript.src : function(){
+      var js = doc.getElementsByTagName('script');
       var last = js.length - 1;
       var src;
       for(var i = last; i > 0; i--){

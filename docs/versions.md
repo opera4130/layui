@@ -9,9 +9,61 @@ toc: true
 
 <h2 id="2.9.x" lay-toc="{title: '2.9.x'}"></h2>
 
+
+<h2 id="v2.9.17" class="ws-anchor">
+  v2.9.17
+  <span class="layui-badge-rim" style="color: #16b777;">稳定版</span>
+  <span class="layui-badge-rim">2024-09-25</span>
+</h2>
+
+- #### table
+  - 修复 表格列宽计算问题 #2187 @Sight-wcg
+  - 优化 慢速网络下表头数据加载时的列宽 #2205 @Sight-wcg
+  - 增加 ` table.checkStatus()` 方法返回的 `dataCache`，即包含内部特定字段的缓存数据 #2239 @sentsim
+  - 修复 返回数据均为 `LAY_DISABLED: true` 时默认全选的问题 #2239 @sentsim
+- #### dropdown
+  - 修复 移动端遮罩层点击穿透问题 #2206 @Sight-wcg
+- #### flow
+  - 回滚 #1852 中加载时自动清除绑定元素内容的改动 #2218 @Sight-wcg
+- #### 重要
+  - 修复 `getPath` 内部方法潜在的 XSS 安全漏洞，建议尽快升级（[详见低版本修复方式](https://layui.dev/notes/share/security-currentscript.html)） - [f756b41] @jackfromeast
+
+### 下载： [layui-v2.9.17.zip](https://gitee.com/layui/layui/attach_files/1911445/download)
+
+---
+
+<h2 id="v2.9.16" class="ws-anchor">
+  v2.9.16
+  <span class="layui-badge-rim">2024-08-21</span>
+</h2>
+
+- #### select
+  - 改进 `lay-search` 属性，支持设置「是否大小写敏感」和「模糊搜索」 #2121 @Sight-wcg
+  - 修复 `lay-append-to` 属性开启时在 dropdown 中点击 select 导致 dropdown 被关闭的问题 #2138 @Sight-wcg
+- #### table
+  - 重构 `table.setRowChecked()` 方法，以优化若干边缘问题 #2146 @sentsim
+  - 恢复 #1773 的变更，以避免设置自动宽度的列被拖拽时的异常问题 #2169 @Sight-wcg
+- #### tab
+  - 新增 `tabBeforeChange` 事件，tab 切换之前触发，可用于阻止 tab 切换 #2111 @sunxiaobin89
+- #### element
+  - 新增 指定元素渲染的支持 #2162 @Sight-wcg
+- #### upload
+  - 新增 `error` 回调函数的第四个参数为 xhr 对象 #2151 @sentsim
+- #### carousel
+  - 修复 动态删除条目至最后一个时调用 `inst.reload` 的异常问题 #2107 @sentsim
+- #### 其他
+  - 微调 `layui-text` 文本区域样式，以更好地适配 Markdown #2126 @sentsim
+
+### 下载： [layui-v2.9.16.zip](https://gitee.com/layui/layui/attach_files/1878209/download)
+
+---
+
+`2.9.15` 版本因为存在一个小缺陷而被跳过
+
+---
+
 <h2 id="v2.9.14" class="ws-anchor">
   v2.9.14
-  <!-- <span class="layui-badge-rim" style="color: #16b777;">稳定版</span> -->
   <span class="layui-badge-rim">2024-07-09</span>
 </h2>
 

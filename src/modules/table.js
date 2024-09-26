@@ -15,6 +15,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
   var util = layui.util;
   var hint = layui.hint();
   var device = layui.device();
+  var isChrome = layui.device('chrome').chrome;
 
   // api
   var table = {
@@ -425,10 +426,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     that.renderStyle();
 
     // 生成替代元素
-    if(hasRender[0]){
-      that.resizeObserver && that.resizeObserver.unobserve(that.elem[0]);
-      hasRender.remove(); // 如果已经渲染，则 Rerender
-    }
+    hasRender[0] && hasRender.remove(); // 如果已经渲染，则 Rerender
     othis.after(reElem);
 
     // 各级容器
@@ -451,6 +449,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
     // 让表格平铺
     that.fullSize();
+    that.setColsWidth();
 
     that.pullData(that.page); // 请求数据
     that.events(); // 事件
@@ -486,9 +485,21 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     options.clientWidth = options.width || function(){ //获取容器宽度
       //如果父元素宽度为0（一般为隐藏元素），则继续查找上层元素，直到找到真实宽度为止
       var getWidth = function(parent){
-        var width, isNone;
-        parent = parent || options.elem.parent()
-        width = parent.width();
+        var width;
+        var isNone;
+        parent = parent || options.elem.parent();
+
+        if(!window.getComputedStyle){
+          // IE 中的 `currentStyle` 获取未显式设置的宽高时会得到 'auto'，jQuery 中有一些 hack 方法获取准确值
+          width = parent.width();
+        }else{
+          var size = that.getElementSize(parent[0]);
+          // IE BUG
+          // border-box: getComputedStyle 得到的 width/height 是按照 content-box 计算出来的
+          width = size.boxSizing === 'border-box' && !lay.ie
+            ? size.width - size.paddingLeft - size.paddingRight - size.borderLeftWidth - size.borderRightWidth
+            : size.width
+        }
         try {
           isNone = parent.css('display') === 'none';
         } catch(e){}
@@ -905,16 +916,23 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     var autoWidth = 0; // 自动列分配的宽度
     var countWidth = 0; // 所有列总宽度和
     var cntrWidth = that.setInit('width');
+    var borderWidth = parseFloat(layui.getStyle(that.elem[0], 'border-right-width'));
+    var lastSpreadCol;
 
-    // 统计列个数
+    // 统计列个数和最后一个分配宽度的列
     that.eachCols(function(i, item){
-      item.hide || colNums++;
+      if(!item.hide){
+        colNums++;
+        if(!(item.width || item.type !== 'normal')){
+          lastSpreadCol = item;
+        }
+      }
     });
 
     // 减去边框差和滚动条宽
     cntrWidth = cntrWidth - function(){
       return (options.skin === 'line' || options.skin === 'nob') ? 2 : colNums + 1;
-    }() - that.getScrollWidth(that.layMain[0]) - 1;
+    }() * borderWidth - that.getScrollWidth(that.layMain[0]);
 
     // 计算自动分配的宽度
     var getAutoWidth = function(back){
@@ -935,7 +953,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
           if(!back){
             width = item2.width || 0;
             if(/\d+%$/.test(width)){ // 列宽为百分比
-              width = Math.floor((parseFloat(width) / 100) * cntrWidth);
+              width = (parseFloat(width) / 100) * cntrWidth;
               width < minWidth && (width = minWidth);
               width > maxWidth && (width = maxWidth);
             } else if(!width){ // 列宽未填写
@@ -972,31 +990,34 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     // 记录自动列数
     that.autoColNums = autoColNums = autoColNums > 0 ? autoColNums : 0;
 
-    // 设置列宽
+    var pixelsForLastCol = cntrWidth;
     that.eachCols(function(i3, item3){
       var minWidth = item3.minWidth || options.cellMinWidth;
       var maxWidth = item3.maxWidth || options.cellMaxWidth;
 
-      if(item3.colGroup || item3.hide) return;
+      if(item3.colGroup || item3.hide || (lastSpreadCol && lastSpreadCol.key === item3.key)) return;
 
       // 给未分配宽的列平均分配宽
       if(item3.width === 0){
         that.cssRules(item3.key, function(item){
-          item.style.width = Math.floor(function(){
+          var newWidth =  Math.round(function(){
             if(autoWidth < minWidth) return minWidth;
             if(autoWidth > maxWidth) return maxWidth;
             return autoWidth;
-          }()) + 'px';
+          }());
+          item.style.width = newWidth + 'px';
+          pixelsForLastCol = pixelsForLastCol - newWidth;
         });
       }
 
       // 给设定百分比的列分配列宽
       else if(/\d+%$/.test(item3.width)){
         that.cssRules(item3.key, function(item){
-          var width = Math.floor((parseFloat(item3.width) / 100) * cntrWidth);
+          var width = Math.round((parseFloat(item3.width) / 100) * cntrWidth);
           width < minWidth && (width = minWidth);
           width > maxWidth && (width = maxWidth);
           item.style.width = width + 'px';
+          pixelsForLastCol = pixelsForLastCol - width;
         });
       }
 
@@ -1004,33 +1025,20 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       else {
         that.cssRules(item3.key, function(item){
           item.style.width = item3.width + 'px';
+          pixelsForLastCol = pixelsForLastCol - item3.width;
         });
       }
     });
-
-    // 填补 Math.floor 造成的数差
-    var patchNums = that.layMain.width() - that.getScrollWidth(that.layMain[0])
-    - that.layMain.children('table').outerWidth();
-
-    if(that.autoColNums > 0 && patchNums >= -colNums && patchNums <= colNums){
-      var getEndTh = function(th){
-        var field;
-        th = th || that.layHeader.eq(0).find('thead > tr:first-child > th:last-child')
-        field = th.data('field');
-        if(!field && th.prev()[0]){
-          return getEndTh(th.prev())
-        }
-        return th;
-      };
-      var th = getEndTh();
-      var key = th.data('key');
-
-      that.cssRules(key, function(item){
-        var width = item.style.width || th.outerWidth();
-        item.style.width = (parseFloat(width) + patchNums) + 'px';
+    // 最后一列获取剩余的空间，避免舍入导致的布局问题
+    if(lastSpreadCol){
+      that.cssRules(lastSpreadCol.key, function(item){
+        var minWidth = lastSpreadCol.minWidth || options.cellMinWidth;
+        var maxWidth = lastSpreadCol.maxWidth || options.cellMaxWidth;
+        var newWidth = Math.max(Math.min(pixelsForLastCol, maxWidth), minWidth);
+        item.style.width = newWidth + 'px';
 
         // 二次校验，如果仍然出现横向滚动条（通常是 1px 的误差导致）
-        if(that.layMain.height() - that.layMain.prop('clientHeight') > 0){
+        if(isChrome && that.layMain.prop('offsetHeight') > that.layMain.prop('clientHeight')){
           item.style.width = (parseFloat(item.style.width) - 1) + 'px';
         }
       });
@@ -1046,7 +1054,6 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     } else {
       that.layMain.find('table').width('auto');
     }
-
   };
 
   // 重置表格尺寸/结构
@@ -1736,10 +1743,12 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     var options = that.config;
     var isCheckAll = opts.index === 'all'; // 是否操作全部
     var isCheckMult = layui.type(opts.index) === 'array'; // 是否操作多个
-    var needDisableTransition= isCheckAll || isCheckMult; // 减少回流
+    var isCheckAllOrMult = isCheckAll || isCheckMult; // 是否全选或多选
 
-    if(needDisableTransition){
-      that.layBox.addClass(DISABLED_TRANSITION);
+    // 全选或多选时
+    if (isCheckAllOrMult) {
+      that.layBox.addClass(DISABLED_TRANSITION); // 减少回流
+      if (opts.type === 'radio') return; // radio 不允许全选或多选
     }
 
     if(isCheckMult){
@@ -1751,13 +1760,14 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     }
 
     // 匹配行元素
-    var selector = (isCheckAll || isCheckMult) ? 'tr' : 'tr[data-index="'+ opts.index +'"]';
+    var tbody = that.layBody.children('.layui-table').children('tbody');
+    var selector = isCheckAllOrMult ? 'tr' : 'tr[data-index="'+ opts.index +'"]';
     var tr = function(tr) {
       return isCheckAll ? tr : tr.filter(isCheckMult ? function() {
         var dataIndex = $(this).data('index');
         return opts.index[dataIndex];
       } : '[data-index="'+ opts.index +'"]');
-    }(that.layBody.find(selector));
+    }(tbody.children(selector));
 
     // 默认属性
     opts = $.extend({
@@ -1773,61 +1783,46 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       return opts.type === 'radio' ? true : (existChecked ? opts.checked : !value)
     };
 
-    var ignoreTrIndex = {};
-    // 设置选中状态
-    layui.each(thisData, function(i, item){
+    var radioCheckedIndex;
+
+    // 给匹配行设置选中状态
+    tr.each(function() {
+      var el = $(this);
+      var i = el.attr('data-index');
+      var item = thisData[i];
+
+      if (!i) return; // 此时 el 通常为静态表格嵌套时的原始模板
+
       // 绕过空项和禁用项
-      if(layui.type(item) === 'array' || item[options.disabledName] || item['layuiCheckShowMark']){
-        ignoreTrIndex[i] = true;
+      if (layui.type(item) === 'array' || item[options.disabledName] || item['layuiCheckShowMark']) {
         return;
       }
 
-      // 匹配条件
-      var matched = isCheckAll || (
-        isCheckMult ? opts.index[i] : Number(opts.index) === i
-      );
+      // 标记数据选中状态
+      var checked = item[options.checkName] = getChecked(el.hasClass(ELEM_CHECKED));
 
-      // 设置匹配项的选中值
-      if(matched){
-        // 标记数据选中状态
-        var checked = item[options.checkName] = getChecked(item[options.checkName]);
+      // 标记当前行背景色
+      el.toggleClass(ELEM_CHECKED, !!checked);
 
-        // 标记当前行背景色
-        // 此处只更新 radio 和 单个 checkbox
-        if(!isCheckAll && !isCheckMult){
-          var currTr = tr.filter('[data-index="'+ i +'"]');
-          currTr[checked ? 'addClass' : 'removeClass'](ELEM_CHECKED);
-  
-          // 若为 radio 类型，则取消其他行选中背景色
-          if(opts.type === 'radio'){
-            currTr.siblings().removeClass(ELEM_CHECKED);
-          }
-        }
-      } else if(opts.type === 'radio') {
-        delete item[options.checkName];
+      // 若为 radio 类型，则取消其他行选中背景色
+      if (opts.type === 'radio') {
+        radioCheckedIndex = i;
+        el.siblings().removeClass(ELEM_CHECKED);
       }
     });
 
-    if(isCheckAll){
-      tr.each(function(i){
-        var index = this.getAttribute('data-index');
-        if(!ignoreTrIndex[index]){
-          var el = $(this);
-          el.toggleClass(ELEM_CHECKED, !!getChecked(thisData[index][options.checkName]))
-        }
-      });
-    }else if(isCheckMult){
-      tr.each(function(i){
-        var index = this.getAttribute('data-index');
-        if(opts.index[index] && !ignoreTrIndex[index]){
-          var el = $(this);
-          el.toggleClass(ELEM_CHECKED, !!getChecked(thisData[index][options.checkName]))
+    // 若为 radio 类型，移除其他行数据选中状态
+    if (radioCheckedIndex) {
+      layui.each(thisData, function(i, item) {
+        if (Number(radioCheckedIndex) !== Number(i)) {
+          delete item[options.checkName];
         }
       });
     }
 
     // 若存在复选框或单选框，则标注选中状态样式
-    var checkedElem = tr.find('input[lay-type="'+ ({
+    var td = tr.children('td').children('.layui-table-cell');
+    var checkedElem = td.children('input[lay-type="'+ ({
       radio: 'layTableRadio',
       checkbox: 'layTableCheckbox'
     }[opts.type] || 'checkbox') +'"]:not(:disabled)');
@@ -1840,7 +1835,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
     that.syncCheckAll();
 
-    if(needDisableTransition){
+    if(isCheckAllOrMult){
       setTimeout(function(){
         that.layBox.removeClass(DISABLED_TRANSITION);
       },100)
@@ -2453,8 +2448,9 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
           index: index,
           checked: checked
         });
-        layui.stope(e);
       }
+
+      layui.stope(e);
 
       // 事件
       layui.event.call(
@@ -2817,13 +2813,32 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       that.layMain.scrollTop(scrollTop + (delta > 0 ? -step : step));
     });
 
-    if(window.ResizeObserver){
-      if(!that.resizeObserver){
-        that.resizeObserver = new ResizeObserver(function(){
-          table.resize(that.key);
-        });
-      }
-      that.resizeObserver.observe(that.elem[0]);
+  }
+
+  /**
+   * 获取元素的大小
+   * @param {HTMLElement} elem - HTML 元素
+   */
+  Class.prototype.getElementSize = function(elem){
+    if(!window.getComputedStyle) return;
+
+    var style = window.getComputedStyle(elem, null);
+    return {
+      height: parseFloat(style.height || '0'),
+      width: parseFloat(style.width || '0'),
+      borderTopWidth: parseFloat(style.borderTopWidth || '0'),
+      borderRightWidth: parseFloat(style.borderRightWidth || '0'),
+      borderBottomWidth: parseFloat(style.borderBottomWidth || '0'),
+      borderLeftWidth: parseFloat(style.borderLeftWidth || '0'),
+      paddingTop: parseFloat(style.paddingTop || '0'),
+      paddingRight: parseFloat(style.paddingRight || '0'),
+      paddingBottom: parseFloat(style.paddingBottom || '0'),
+      paddingLeft: parseFloat(style.paddingLeft || '0'),
+      marginTop: parseFloat(style.marginTop || '0'),
+      marginRight: parseFloat(style.marginRight || '0'),
+      marginBottom: parseFloat(style.marginBottom || '0'),
+      marginLeft: parseFloat(style.marginLeft || '0'),
+      boxSizing: style.boxSizing
     }
   };
 
@@ -2990,15 +3005,15 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
   // 获取表格选中状态
   table.checkStatus = function(id){
-    var nums = 0;
     var invalidNum = 0;
     var arr = [];
+    var dataCache = [];
     var data = table.cache[id] || [], layuiCheckShowMark = 0;
 
-    //计算全选个数
+    // 过滤禁用或已删除的数据
     layui.each(data, function(i, item){
       if(layui.type(item) === 'array' || item[table.config.disabledName]){
-        invalidNum++; // 无效数据，或已删除的
+        invalidNum++; // 无效数据数量
         return;
       }
       if(item['layuiCheckShowMark']){
@@ -3006,15 +3021,15 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         return;
       }
       if(item[table.config.checkName]){
-        nums++;
-        if(!item[table.config.disabledName]){
-          arr.push(table.clearCacheKey(item));
-        }
+        arr.push(table.clearCacheKey(item));
+        dataCache.push(item);
       }
     });
+
     return {
       data: arr, // 选中的数据
-      isAll: data.length ? (arr.length && (nums === (data.length - invalidNum - layuiCheckShowMark))) : false // 是否全选
+      dataCache: dataCache, // 选中的原始缓存数据，包含内部特定字段
+      isAll: (data.length && arr.length) ? (arr.length === (data.length - invalidNum - layuiCheckShowMark)) : false // 是否全选
     };
   };
 
