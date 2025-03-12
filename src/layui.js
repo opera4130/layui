@@ -16,7 +16,7 @@
   };
 
   var Layui = function(){
-    this.v = '2.9.20'; // Layui 版本号
+    this.v = '2.9.24'; // Layui 版本号
   };
 
   // 识别预先可能定义的指定全局对象
@@ -254,9 +254,12 @@
   };
 
   // 获取节点的 style 属性值
+  // currentStyle.getAttribute 参数为 camelCase 形式的字符串
   Layui.prototype.getStyle = function(node, name){
     var style = node.currentStyle ? node.currentStyle : win.getComputedStyle(node, null);
-    return style[style.getPropertyValue ? 'getPropertyValue' : 'getAttribute'](name);
+    return style.getPropertyValue
+      ? style.getPropertyValue(name)
+      : style.getAttribute(name.replace(/-(\w)/g, function(_, c){ return c ? c.toUpperCase() : '';}));
   };
 
   // css 外部加载器

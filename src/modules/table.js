@@ -495,7 +495,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
           isNone = parent.css('display') === 'none';
         } catch(e){}
         var parentElem = parent.parent();
-        if(parent[0] && parentElem && parentElem.nodeType === 1 && (!width || isNone)) return getWidth(parentElem);
+        if(parent[0] && parentElem && parentElem[0] && (!width || isNone)) return getWidth(parentElem);
         return width;
       };
       return getWidth();
@@ -1619,7 +1619,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         ? parseFloat(totalNums[field] || 0).toFixed(decimals)
       : '';
 
-      // td 显示内容
+      // 合计内容
       var content = function(){
         var text = item3.totalRowText || '';
         var tplData = {
@@ -1639,11 +1639,26 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         return TOTAL_NUMS || getContent;
       }();
 
+      // td 显示内容
+      var tdContent = function(){
+        var totalRow = item3.totalRow || options.totalRow;
+
+        // 如果 totalRow 参数为字符类型，则解析为自定义模版
+        if(typeof totalRow === 'string'){
+          return laytpl(totalRow).render($.extend({
+            TOTAL_NUMS: TOTAL_NUMS || totalNums[field],
+            TOTAL_ROW: totalRowData || {},
+            LAY_COL: item3
+          }, item3));
+        }
+
+        return content;
+      }();
+
       // 合计原始结果
-      var total = TOTAL_NUMS || thisTotalNum || '';
       item3.field && that.dataTotal.push({
         field: item3.field,
-        total: $('<div>'+ content +'</div>').text()
+        total: $('<div>'+ tdContent +'</div>').text()
       });
 
       // td 容器
@@ -1667,19 +1682,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         var attr = [];
         if(item3.align) attr.push('align="'+ item3.align +'"'); // 对齐方式
         return attr.join(' ');
-      }() +'>' + function(){
-          var totalRow = item3.totalRow || options.totalRow;
-
-          // 如果 totalRow 参数为字符类型，则解析为自定义模版
-          if(typeof totalRow === 'string'){
-            return laytpl(totalRow).render($.extend({
-              TOTAL_NUMS: TOTAL_NUMS || totalNums[field],
-              TOTAL_ROW: totalRowData || {},
-              LAY_COL: item3
-            }, item3));
-          }
-          return content;
-        }(),
+      }() +'>' + tdContent,
       '</div></td>'].join('');
 
       tds.push(td);
@@ -1756,6 +1759,9 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     var isCheckAll = opts.index === 'all'; // 是否操作全部
     var isCheckMult = layui.type(opts.index) === 'array'; // 是否操作多个
     var isCheckAllOrMult = isCheckAll || isCheckMult; // 是否全选或多选
+
+    // treeTable 内部已处理选中，此处不再处理
+    if(options.tree && options.tree.view) return;
 
     // 全选或多选时
     if (isCheckAllOrMult) {
@@ -1850,7 +1856,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     if(isCheckAllOrMult){
       setTimeout(function(){
         that.layBox.removeClass(DISABLED_TRANSITION);
-      },100)
+      }, 100)
     }
   };
 
@@ -2866,19 +2872,40 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
   /**
    * 获取元素 content 区域宽度值
+   * 
+   * layui 内置 jQuery v1.12.4 中的 jQuery.fn.width 始终对值四舍五入(3.x 已修复),
+   * 在支持 subpixel Rendering 的浏览器中渲染表格，由于列宽分配时计算值精度不足，
+   * 可能会导致一些小问题(#1726)
+   * 
+   * 这个方法使用 getComputedStyle 获取精确的宽度值进行计算，为了尽可能和以前的行为
+   * 保持一致(主要是隐藏元素内渲染 table 递归获取父元素宽度 https://github.com/layui/layui/discussions/2398)，
+   * 任何非预期的值，都回退到 jQuery.fn.width。未来的版本使用 ResizeObserver 时，可以直接获取表格视图元素的宽度，
+   * 并移除兼容性代码
+   * 
    * @param {JQuery} elem - 元素的 jQuery 对象
+   * 
+   * @see {@link https://learn.microsoft.com/zh-cn/archive/blogs/ie_cn/css-3}
    */
   Class.prototype.getContentWidth = function(elem){
     var that = this;
 
-    if(!window.getComputedStyle){
-      // IE 中的 `currentStyle` 获取未显式设置的宽高时会得到 'auto'，jQuery 中有一些 hack 方法获取准确值
+    if(
+      // document
+      elem[0].nodeType === 9 ||
+      // IE 中 border-box 盒模型，getComputedStyle 得到的 width/height 是按照 content-box 计算出来的
+      (lay.ie && elem.css('box-sizing') === 'border-box') ||
+      elem.css('display') === 'none'
+    ){
+      return elem.width();
+    }
+
+    var size = that.getElementSize(elem[0]);
+
+    // display: none|inline 元素，getComputedStyle 无法得到准确的 width/height
+    if(typeof size === 'undefined' || !size.width){
       return elem.width();
     }else{
-      var size = that.getElementSize(elem[0]);
-      // IE BUG
-      // border-box: getComputedStyle 得到的 width/height 是按照 content-box 计算出来的
-      return (size.boxSizing === 'border-box' && !lay.ie)
+      return size.boxSizing === 'border-box'
         ? size.width - size.paddingLeft - size.paddingRight - size.borderLeftWidth - size.borderRightWidth
         : size.width
     }

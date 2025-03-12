@@ -9,6 +9,91 @@ toc: true
 
 <h2 id="2.9.x" lay-toc="{title: '2.9.x'}"></h2>
 
+<h2 id="v2.9.24" class="ws-anchor">
+  v2.9.24
+  <span class="layui-badge-rim">2025-03-07</span>
+  <span class="layui-badge-rim" style="color: #16b777;">稳定版</span>
+</h2>
+
+- #### layer
+  - 改进 打开弹层后设置页面滚动条逻辑 #2537 @Sight-wcg
+- #### treeTable
+  - 修复 treeToFlat 改变根节点 pid 问题 #2526 @Sight-wcg
+  - 修复 checkbox 重复更新的问题，大约可提升 30% 性能 #2528 @Sight-wcg
+- #### code
+  - 修复 选项卡底边框显示异常问题 #2519 @Sight-wcg
+
+### 下载： [layui-v2.9.24.zip](https://gitee.com/layui/layui/attach_files/2085224/download)
+
+---
+
+<h2 id="v2.9.23" class="ws-anchor">
+  v2.9.23
+  <span class="layui-badge-rim">2025-02-19</span>
+</h2>
+
+- #### 基础
+  - 新增 6 个图标 #2511 @sentsim
+- #### form
+  - 修复 `form.val()` 某些情况下赋值失效问题 #2503 @Sight-wcg
+- #### 公共类
+  - 优化 `layui-text` 在混合列表下的显示问题 #2510 @sentsim
+
+### 下载： [layui-v2.9.23.zip](https://gitee.com/layui/layui/attach_files/2060356/download)
+
+---
+
+<h2 id="v2.9.22" class="ws-anchor">
+  v2.9.22
+  <span class="layui-badge-rim">2025-02-14</span>
+</h2>
+
+- #### form
+  - 修复 `form.val()` 第二个参数为 ArrayLike 时表单赋值异常 #2455 @Sight-wcg
+  - 修复 `select` 未选中时 form.val 获取到的值为 null 的问题 #2475 @Sight-wcg
+- #### table
+  - 回滚 #2411 中的 `ResizeObserver` 逻辑，因为可能存在更多的边缘影响 #2501 @Sight-wcg
+- #### treeTable
+  - 修复 异步加载子节点失败后，无法点击重新加载的问题 #2479 @Sight-wcg
+- #### 基础
+  - 优化 Linux 个别环境下的等宽字体 #2488 @SessionHu
+
+### 下载： [layui-v2.9.22.zip](https://gitee.com/layui/layui/attach_files/2054722/download)
+
+---
+
+<h2 id="v2.9.21" class="ws-anchor">
+  v2.9.21
+  <span class="layui-badge-rim">2025-01-03</span>
+</h2>
+
+- #### table
+  - 新增 通过 `ResizeObserver` 自动处理 `table.reisze`，以适应所处容器的尺寸变化 #2411 @Sight-wcg
+  - 修复 未正确导出合计行模板的问题 #2412 @sentsim
+  - 优化 表格在隐藏元素中渲染的宽度问题 #2376 #2402 @Sight-wcg
+  - 修复 IE8 下执行渲染的报错问题 #2437 @Sight-wcg
+- #### treeTable
+  - 修复 直接赋值 `data` 时切换分页出现报错的问题 #2406 @sentsim
+- #### tab
+  - 新增 `element.tabDelete()` 方法的第三个参数，用于强制删除 tab #2407 @sentsim
+  - 修复 指定元素渲染，添加和删除选项卡会导致全部 tab 重新渲染的问题 #2386 @Sight-wcg
+  - 修复 出现展开按钮时，活动选项卡底边框显示异常 #2387 @Sight-wcg
+- #### form
+  - 修复 `form.val()` 获取 `multiple select` 值错误 #2425 @Sight-wcg
+  - 修复 IE8 中 `checkbox` 半选异常问题 #2442 @Sight-wcg
+- #### nav
+  - 修复 IE 低版本下执行 `element.render('nav')` 的报错问题 #2415 @Sight-wcg
+- #### colorpicker
+  - 修复 清空后点击右侧颜色滑块，出现的颜色值错误 #2401 @Sight-wcg
+- #### code
+  - 增强 `onCopy` 可获取复制状态和阻止默认提示 #2419 @Sight-wcg
+- #### 其他
+  - 优化 `.layui-body` 和 `.layui-text` 样式细节 #2395 @sentsim
+
+### 下载： [layui-v2.9.21.zip](https://gitee.com/layui/layui/attach_files/2014210/download)
+
+---
+
 <h2 id="v2.9.20" class="ws-anchor">
   v2.9.20
   <span class="layui-badge-rim" style="color: #16b777;">稳定版</span>
