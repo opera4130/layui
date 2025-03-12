@@ -387,8 +387,7 @@ layui.define(['table'], function (exports) {
     layui.each(tableData, function (i1, item1) {
       var dataIndex = (parentIndex ? parentIndex + '-' : '') + i1;
       var dataNew = $.extend({}, item1);
-      
-      dataNew[pIdKey] = typeof item1[pIdKey] !== 'undefined' ? item1[pIdKey] : parentId;
+      dataNew[pIdKey] = item1[pIdKey] || parentId;
       flat.push(dataNew);
       flat = flat.concat(that.treeToFlat(item1[childrenKey], item1[customName.id], dataIndex));
     });
@@ -672,7 +671,7 @@ layui.define(['table'], function (exports) {
       } else {
         var asyncSetting = treeOptions.async || {};
         var asyncUrl = asyncSetting.url || options.url;
-        if (asyncSetting.enable && trData[isParentKey] && (!trData[LAY_ASYNC_STATUS] || trData[LAY_ASYNC_STATUS] === 'error')) {
+        if (asyncSetting.enable && trData[isParentKey] && !trData[LAY_ASYNC_STATUS]) {
           trData[LAY_ASYNC_STATUS] = 'loading';
           flexIconElem.html('<i class="layui-icon layui-icon-loading layui-anim layui-anim-loop layui-anim-rotate"></i>');
 
@@ -727,7 +726,6 @@ layui.define(['table'], function (exports) {
               // 检查数据格式是否符合规范
               if (res[asyncResponse.statusName] != asyncResponse.statusCode) {
                 trData[LAY_ASYNC_STATUS] = 'error';
-                trData[LAY_EXPAND] = false;
                 // 异常处理 todo
                 flexIconElem.html('<i class="layui-icon layui-icon-refresh"></i>');
                 // 事件
@@ -738,7 +736,6 @@ layui.define(['table'], function (exports) {
             },
             error: function (e, msg) {
               trData[LAY_ASYNC_STATUS] = 'error';
-              trData[LAY_EXPAND] = false;
               // 异常处理 todo
               typeof options.error === 'function' && options.error(e, msg);
             }
@@ -1051,7 +1048,6 @@ layui.define(['table'], function (exports) {
     var isParentKey = customName.isParent;
     var tableFilterId = tableViewElem.attr('lay-filter');
     var treeTableThat = that;
-    var existsData = options.data.length; // 是否直接赋值 data
     // var tableData = treeTableThat.getTableData();
 
     level = level || 0;
@@ -1060,14 +1056,9 @@ layui.define(['table'], function (exports) {
       // 初始化的表格里面没有level信息，可以作为顶层节点的判断
       tableViewElem.find('.layui-table-body tr:not([data-level])').attr('data-level', level);
       layui.each(table.cache[tableId], function (dataIndex, dataItem) {
-        // fix: 修正直接赋值 data 时顶层节点 LAY_DATA_INDEX 值的异常问题
-        if (existsData) {
-          dataItem[LAY_DATA_INDEX] = String(dataIndex);
-        }
-        var layDataIndex = dataItem[LAY_DATA_INDEX];
-        tableViewElem.find('.layui-table-main tbody tr[data-level="0"]:eq(' + dataIndex + ')').attr('lay-data-index', layDataIndex);
-        tableViewElem.find('.layui-table-fixed-l tbody tr[data-level="0"]:eq(' + dataIndex + ')').attr('lay-data-index', layDataIndex);
-        tableViewElem.find('.layui-table-fixed-r tbody tr[data-level="0"]:eq(' + dataIndex + ')').attr('lay-data-index', layDataIndex);
+        tableViewElem.find('.layui-table-main tbody tr[data-level="0"]:eq(' + dataIndex + ')').attr('lay-data-index', dataItem[LAY_DATA_INDEX]);
+        tableViewElem.find('.layui-table-fixed-l tbody tr[data-level="0"]:eq(' + dataIndex + ')').attr('lay-data-index', dataItem[LAY_DATA_INDEX]);
+        tableViewElem.find('.layui-table-fixed-r tbody tr[data-level="0"]:eq(' + dataIndex + ')').attr('lay-data-index', dataItem[LAY_DATA_INDEX]);
       })
     }
 
@@ -1762,10 +1753,10 @@ layui.define(['table'], function (exports) {
         that.setRowCheckedClass(checkboxElem.closest('tr'), checked);
         
         // 设置原始复选框 checked 属性值并渲染
-        checkboxElem.prop({
+        form.render(checkboxElem.prop({
           checked: checked,
           indeterminate: itemP[LAY_CHECKBOX_HALF]
-        })
+        }))
       })
     }
 
@@ -1794,10 +1785,10 @@ layui.define(['table'], function (exports) {
     }
     
     isIndeterminate = isIndeterminate && !isAll;
-    tableView.find('input[name="layTableCheckbox"][lay-filter="layTableAllChoose"]').prop({
+    form.render(tableView.find('input[name="layTableCheckbox"][lay-filter="layTableAllChoose"]').prop({
       'checked': isAll,
       indeterminate: isIndeterminate
-    })
+    }));
 
     return isAll
   }
@@ -1909,7 +1900,7 @@ layui.define(['table'], function (exports) {
 
             // 取消当前选中行背景色
             that.setRowCheckedClass(radioElem.closest('tr'), false);
-            radioElem.prop('checked', false);
+            form.render(radioElem.prop('checked', false));
           }
         }); // 取消其他的选中状态
         trData[checkName] = checked;
@@ -1917,7 +1908,7 @@ layui.define(['table'], function (exports) {
         that.setRowCheckedClass(trElem, checked);  // 标记当前选中行背景色
         that.setRowCheckedClass(trElem.siblings(), false); // 取消其他行背景色
 
-        trElem.find('input[type="radio"][lay-type="layTableRadio"]').prop('checked', checked);
+        form.render(trElem.find('input[type="radio"][lay-type="layTableRadio"]').prop('checked', checked));
       } else {
         // 切换只能用到单条，全选到这一步的时候应该是一个确定的状态
         checked = layui.type(checked) === 'boolean' ? checked : !trData[checkName]; // 状态切换，如果遇到不可操作的节点待处理 todo
@@ -1936,7 +1927,7 @@ layui.define(['table'], function (exports) {
         }).join(','));
 
         that.setRowCheckedClass(checkboxElem.closest('tr'), checked);  // 标记当前选中行背景色
-        checkboxElem.prop({checked: checked, indeterminate: false});
+        form.render(checkboxElem.prop({checked: checked, indeterminate: false}));
 
         var trDataP;
 
@@ -1945,7 +1936,7 @@ layui.define(['table'], function (exports) {
           // 找到父节点，然后判断父节点的子节点是否全部选中
           trDataP = that.getNodeDataByIndex(trData[LAY_PARENT_INDEX]);
         }
-        
+
         return that.updateCheckStatus(trDataP, checked);
       }
     }

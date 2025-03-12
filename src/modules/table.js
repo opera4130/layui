@@ -373,7 +373,8 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     // 高度铺满：full-差距值
     if(options.height && /^full-.+$/.test(options.height)){
       that.fullHeightGap = options.height.split('-')[1];
-      options.height = _WIN.height() - (parseFloat(that.fullHeightGap) || 0);
+      // 减去页面固定高度和动态高度
+      options.height = _WIN.height() - (parseFloat(that.fullHeightGap) || 0) - heightChangeElementFunc(options.heightChangeElement, that);
     } else if (options.height && /^#\w+\S*-.+$/.test(options.height)) {
       var parentDiv = options.height.split("-");
       that.parentHeightGap = parentDiv.pop();
@@ -494,7 +495,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
           isNone = parent.css('display') === 'none';
         } catch(e){}
         var parentElem = parent.parent();
-        if(parent[0] && parentElem && parentElem[0] && (!width || isNone)) return getWidth(parentElem);
+        if(parent[0] && parentElem && parentElem.nodeType === 1 && (!width || isNone)) return getWidth(parentElem);
         return width;
       };
       return getWidth();
@@ -1355,7 +1356,8 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
           +'>'
           + function(){
             var tplData = $.extend(true, {
-              LAY_COL: item3
+			  LAY_INDEX: numbers
+              ,LAY_COL: item3
             }, item1);
             var checkName = table.config.checkName;
             var disabledName = table.config.disabledName;
@@ -1363,7 +1365,14 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
             // 渲染不同风格的列
             switch(item3.type){
               case 'checkbox': // 复选
-                return '<input type="checkbox" name="layTableCheckbox" lay-skin="primary" '+ function(){
+                return '<input ' + function(){
+                    if(item3.show && item3.show(tplData) == false) {
+                      data[i1].layuiCheckShowMark = true;
+                      return ' type="hidden" ';
+                    } else {
+                      return ' type="checkbox" name="layTableCheckbox"  ';
+                    }
+                  }() +' lay-skin="primary" '+ function(){
                   // 其他属性
                   var arr = [];
 
@@ -1382,7 +1391,12 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
                 //break;
               case 'radio': // 单选
                 return '<input type="radio" name="layTableRadio_'+ options.index +'" '
-                  + function(){
+                      + (tplData[checkName] ? 'checked' : '') + function(){
+                        if(item3.show && item3.show(tplData) == false) {
+                          return ' lay-ignore style="visibility:hidden;" ';
+                        }
+                        return '';
+                      }() + function(){
                     var arr = [];
                     if(tplData[checkName]) arr[0] = 'checked';
                     if(tplData[disabledName]) arr.push('disabled');
@@ -1605,7 +1619,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         ? parseFloat(totalNums[field] || 0).toFixed(decimals)
       : '';
 
-      // 合计内容
+      // td 显示内容
       var content = function(){
         var text = item3.totalRowText || '';
         var tplData = {
@@ -1625,26 +1639,11 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         return TOTAL_NUMS || getContent;
       }();
 
-      // td 显示内容
-      var tdContent = function(){
-        var totalRow = item3.totalRow || options.totalRow;
-
-        // 如果 totalRow 参数为字符类型，则解析为自定义模版
-        if(typeof totalRow === 'string'){
-          return laytpl(totalRow).render($.extend({
-            TOTAL_NUMS: TOTAL_NUMS || totalNums[field],
-            TOTAL_ROW: totalRowData || {},
-            LAY_COL: item3
-          }, item3));
-        }
-
-        return content;
-      }();
-
       // 合计原始结果
+      var total = TOTAL_NUMS || thisTotalNum || '';
       item3.field && that.dataTotal.push({
         field: item3.field,
-        total: $('<div>'+ tdContent +'</div>').text()
+        total: $('<div>'+ content +'</div>').text()
       });
 
       // td 容器
@@ -1668,7 +1667,19 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
         var attr = [];
         if(item3.align) attr.push('align="'+ item3.align +'"'); // 对齐方式
         return attr.join(' ');
-      }() +'>' + tdContent,
+      }() +'>' + function(){
+          var totalRow = item3.totalRow || options.totalRow;
+
+          // 如果 totalRow 参数为字符类型，则解析为自定义模版
+          if(typeof totalRow === 'string'){
+            return laytpl(totalRow).render($.extend({
+              TOTAL_NUMS: TOTAL_NUMS || totalNums[field],
+              TOTAL_ROW: totalRowData || {},
+              LAY_COL: item3
+            }, item3));
+          }
+          return content;
+        }(),
       '</div></td>'].join('');
 
       tds.push(td);
@@ -1746,9 +1757,6 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     var isCheckMult = layui.type(opts.index) === 'array'; // 是否操作多个
     var isCheckAllOrMult = isCheckAll || isCheckMult; // 是否全选或多选
 
-    // treeTable 内部已处理选中，此处不再处理
-    if(options.tree && options.tree.view) return;
-
     // 全选或多选时
     if (isCheckAllOrMult) {
       that.layBox.addClass(DISABLED_TRANSITION); // 减少回流
@@ -1798,7 +1806,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
       if (!i) return; // 此时 el 通常为静态表格嵌套时的原始模板
 
       // 绕过空项和禁用项
-      if (layui.type(item) === 'array' || item[options.disabledName]) {
+      if (layui.type(item) === 'array' || item[options.disabledName] || item['layuiCheckShowMark']) {
         return;
       }
 
@@ -1842,7 +1850,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     if(isCheckAllOrMult){
       setTimeout(function(){
         that.layBox.removeClass(DISABLED_TRANSITION);
-      }, 100)
+      },100)
     }
   };
 
@@ -1964,7 +1972,8 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     var MIN_HEIGHT = 135;
 
     if(that.fullHeightGap){
-      height = _WIN.height() - that.fullHeightGap;
+      // 减去页面固定高度和动态高度
+      height = _WIN.height() - that.fullHeightGap - heightChangeElementFunc(options.heightChangeElement, that);
       if(height < MIN_HEIGHT) height = MIN_HEIGHT;
       // that.elem.css('height', height);
     } else if (that.parentDiv && that.parentHeightGap) {
@@ -2857,40 +2866,19 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
 
   /**
    * 获取元素 content 区域宽度值
-   * 
-   * layui 内置 jQuery v1.12.4 中的 jQuery.fn.width 始终对值四舍五入(3.x 已修复),
-   * 在支持 subpixel Rendering 的浏览器中渲染表格，由于列宽分配时计算值精度不足，
-   * 可能会导致一些小问题(#1726)
-   * 
-   * 这个方法使用 getComputedStyle 获取精确的宽度值进行计算，为了尽可能和以前的行为
-   * 保持一致(主要是隐藏元素内渲染 table 递归获取父元素宽度 https://github.com/layui/layui/discussions/2398)，
-   * 任何非预期的值，都回退到 jQuery.fn.width。未来的版本使用 ResizeObserver 时，可以直接获取表格视图元素的宽度，
-   * 并移除兼容性代码
-   * 
    * @param {JQuery} elem - 元素的 jQuery 对象
-   * 
-   * @see {@link https://learn.microsoft.com/zh-cn/archive/blogs/ie_cn/css-3}
    */
   Class.prototype.getContentWidth = function(elem){
     var that = this;
 
-    if(
-      // document
-      elem[0].nodeType === 9 ||
-      // IE 中 border-box 盒模型，getComputedStyle 得到的 width/height 是按照 content-box 计算出来的
-      (lay.ie && elem.css('box-sizing') === 'border-box') ||
-      elem.css('display') === 'none'
-    ){
-      return elem.width();
-    }
-
-    var size = that.getElementSize(elem[0]);
-
-    // display: none|inline 元素，getComputedStyle 无法得到准确的 width/height
-    if(typeof size === 'undefined' || !size.width){
+    if(!window.getComputedStyle){
+      // IE 中的 `currentStyle` 获取未显式设置的宽高时会得到 'auto'，jQuery 中有一些 hack 方法获取准确值
       return elem.width();
     }else{
-      return size.boxSizing === 'border-box'
+      var size = that.getElementSize(elem[0]);
+      // IE BUG
+      // border-box: getComputedStyle 得到的 width/height 是按照 content-box 计算出来的
+      return (size.boxSizing === 'border-box' && !lay.ie)
         ? size.width - size.paddingLeft - size.paddingRight - size.borderLeftWidth - size.borderRightWidth
         : size.width
     }
@@ -3062,12 +3050,16 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     var invalidNum = 0;
     var arr = [];
     var dataCache = [];
-    var data = table.cache[id] || [];
+    var data = table.cache[id] || [], layuiCheckShowMark = 0;
 
     // 过滤禁用或已删除的数据
     layui.each(data, function(i, item){
       if(layui.type(item) === 'array' || item[table.config.disabledName]){
         invalidNum++; // 无效数据数量
+        return;
+      }
+      if(item['layuiCheckShowMark']){
+        layuiCheckShowMark++;
         return;
       }
       if(item[table.config.checkName]){
@@ -3079,7 +3071,7 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     return {
       data: arr, // 选中的数据
       dataCache: dataCache, // 选中的原始缓存数据，包含内部特定字段
-      isAll: (data.length && arr.length) ? (arr.length === (data.length - invalidNum)) : false // 是否全选
+      isAll: (data.length && arr.length) ? (arr.length === (data.length - invalidNum - layuiCheckShowMark)) : false // 是否全选
     };
   };
 
@@ -3336,6 +3328,22 @@ layui.define(['lay', 'laytpl', 'laypage', 'form', 'util'], function(exports){
     return data;
   };
 
+  /**
+   * 元素由于浏览器窗口尺寸变化导致的的元素高度变化的计算
+   * @param callback
+   * @returns {number}
+   */
+  function heightChangeElementFunc(callback, that){
+    if(!callback){
+      return 0;
+    }
+    if (typeof callback === "function") {
+		return callback(that);
+	} else {
+		return $(callback).height();
+	}
+  }
+  
   // 自动完成渲染
   $(function(){
     table.init();

@@ -11,8 +11,8 @@ a:active,a:hover{outline:0}
 img{display: inline-block; border: none; vertical-align: middle;}
 li{list-style:none;}
 table{border-collapse: collapse; border-spacing: 0;}
-h1,h2,h3,h4,h5,h6{font-weight: 700;}
-h5,h6{font-size: 100%;}
+h1,h2,h3,h4{font-weight: 700;}
+h5,h6{font-weight: 500; font-size: 100%;}
 button,input,select,textarea{font-size: 100%; }
 input,button,textarea,select,optgroup,option{font-family: inherit; font-size: inherit; font-style: inherit; font-weight: inherit; outline: 0;}
 pre{white-space: pre-wrap; white-space: -moz-pre-wrap; white-space: -pre-wrap; white-space: -o-pre-wrap; word-wrap: break-word;}
@@ -48,12 +48,12 @@ a cite{font-style: normal; *cursor:pointer;}
 /** 图标字体 **/
 @font-face {
   font-family: 'layui-icon';
-  src: url('../font/iconfont.eot?v=293');
-  src: url('../font/iconfont.eot?v=293#iefix') format('embedded-opentype'),
-       url('../font/iconfont.woff2?v=293') format('woff2'),
-       url('../font/iconfont.woff?v=293') format('woff'),
-       url('../font/iconfont.ttf?v=293') format('truetype'),
-       url('../font/iconfont.svg?v=293#layui-icon') format('svg');
+  src: url('../font/iconfont.eot?v=282');
+  src: url('../font/iconfont.eot?v=282#iefix') format('embedded-opentype'),
+       url('../font/iconfont.woff2?v=282') format('woff2'),
+       url('../font/iconfont.woff?v=282') format('woff'),
+       url('../font/iconfont.ttf?v=282') format('truetype'),
+       url('../font/iconfont.svg?v=282#layui-icon') format('svg');
 }
 
 .layui-icon{
@@ -65,8 +65,6 @@ a cite{font-style: normal; *cursor:pointer;}
 }
 
 /* font-class */
-.layui-icon-sound:before{content: "\e69d";}
-.layui-icon-bot:before{content: "\e7d6";}
 .layui-icon-leaf:before{content: "\e701";}
 .layui-icon-folder:before{content: "\eabe";}
 .layui-icon-folder-open:before{content: "\eac1";}
@@ -268,7 +266,7 @@ a cite{font-style: normal; *cursor:pointer;}
 .layui-header a:hover{transition: all .5s; -webkit-transition: all .5s;}
 .layui-side{position: fixed; left: 0; top: 0; bottom: 0; z-index: 999; width: 200px; overflow-x: hidden;}
 .layui-side-scroll{position: relative; width: 220px; height: 100%; overflow-x: hidden;}
-.layui-body{position: relative; left: 200px; right: 0; top: 0; bottom: 0; width: auto; box-sizing: border-box;}
+.layui-body{position: relative; left: 200px; right: 0; top: 0; bottom: 0; z-index: 900; width: auto; box-sizing: border-box;}
 
 /* 后台框架大布局 */
 .layui-layout-body{overflow-x: hidden;}
@@ -652,32 +650,25 @@ hr.layui-border-black{border-width: 0 0 1px;}
 
 /* 文本区域 */
 .layui-text{line-height: 1.8; font-size: 14px;}
-.layui-text h1{margin: 32px 0; font-size: 32px;}
-.layui-text h2{margin: 24px 0; font-size: 24px;}
-.layui-text h3{margin: 16px 0; font-size: 18px;}
-.layui-text h4{margin: 11px 0; font-size: 16px;}
-.layui-text h5{margin: 11px 0; font-size: 14px;}
-.layui-text h6{margin: 11px 0; font-size: 13px;}
-.layui-text p{margin: 15px 0;}
-.layui-text p:first-child{margin-top: 0;}
-.layui-text p:last-child{margin-bottom: 0;}
-.layui-text hr{margin: 15px 0;}
+.layui-text h1{font-size: 32px;}
+.layui-text h2{font-size: 24px;}
+.layui-text h3{font-size: 18px;}
+.layui-text h4{font-size: 16px;}
+.layui-text h5{font-size: 14px;}
+.layui-text h6{font-size: 13px;}
 .layui-text ul,
 .layui-text ol{padding-left: 15px;}
 .layui-text ul li{margin-top: 5px; list-style-type: disc;}
 .layui-text ol li{margin-top: 5px; list-style-type: decimal;}
-.layui-text ul ul > li,
-.layui-text ol ul > li{list-style-type: disc;}
-.layui-text ul li > p:first-child,
-.layui-text ol li > p:first-child{margin-top: 0; margin-bottom: 0;}
+.layui-text-em,
+.layui-word-aux{color: #999 !important; padding-left: 5px !important; padding-right: 5px !important;}
+.layui-text p{margin: 15px 0;}
+.layui-text p:first-child{margin-top: 0;}
+.layui-text p:last-child{margin-bottom: 0;}
 .layui-text a:not(.layui-btn){color: #01AAED;}
 .layui-text a:not(.layui-btn):hover{text-decoration: underline;}
 .layui-text blockquote:not(.layui-elem-quote){margin: 15px 0; padding: 5px 15px; border-left: 5px solid #eee;}
-.layui-text pre > code:not(.layui-code){display: block; padding: 15px; font-family: "Courier New",Consolas,"Lucida Console", monospace;}
-
-/* 文本区域辅助  */
-.layui-text-em,
-.layui-word-aux{color: #999 !important; padding-left: 5px !important; padding-right: 5px !important;}
+.layui-text pre > code:not(.layui-code){padding: 15px; font-family: "Courier New",Consolas,"Lucida Console";}
 
 /* 字体大小 */
 .layui-font-12{font-size: 12px !important;}
@@ -1378,15 +1369,14 @@ body .layui-table-tips .layui-layer-content{background: none; padding: 0; box-sh
 /** Tab 选项卡 **/
 .layui-tab{margin: 10px 0; text-align: left !important;}
 .layui-tab[overflow]>.layui-tab-title{overflow: hidden;}
-.layui-tab .layui-tab-title{position: relative; left: 0; height: 40px; white-space: nowrap; font-size: 0;  transition: all .2s; -webkit-transition: all .2s;}
-.layui-tab .layui-tab-title:after{content: ""; border-bottom-color: #eee; border-bottom-width: 1px; border-style: none none solid; bottom: 0; left: 0; right: auto; top: auto; pointer-events: none; position: absolute; width: 100%; z-index: 8;}
+.layui-tab .layui-tab-title{position: relative; left: 0; height: 40px; white-space: nowrap; font-size: 0; border-bottom-width: 1px; border-bottom-style: solid; transition: all .2s; -webkit-transition: all .2s;}
 .layui-tab .layui-tab-title li{display: inline-block; *display: inline; *zoom: 1; vertical-align: middle; font-size: 14px; transition: all .2s; -webkit-transition: all .2s;}
 .layui-tab .layui-tab-title li{position: relative; line-height: 40px; min-width: 65px; margin: 0; padding: 0 15px; text-align: center; cursor: pointer;}
 .layui-tab .layui-tab-title li a{display: block; padding: 0 15px; margin: 0 -15px;}
 .layui-tab-title .layui-this{color: #000;}
 
-.layui-tab-title .layui-this:after{position: absolute; left:0; top: 0; content: ""; width:100%; height: 40px; border-width: 1px; border-bottom-width: 1px; border-style: solid; border-bottom-color: #fff; border-radius: 2px 2px 0 0; box-sizing: border-box; pointer-events: none; z-index: 9;}
-.layui-tab-bar{box-sizing: border-box; position: absolute; right: 0; top: 0; z-index: 10; width: 30px; height: 40px; line-height: 40px; border-width: 1px; border-style: solid; border-radius: 2px; text-align: center; background-color: #fff; cursor: pointer;}
+.layui-tab-title .layui-this:after{position: absolute; left:0; top: 0; content: ""; width:100%; height: 41px; border-width: 1px; border-bottom-width: 2px; border-style: solid; border-bottom-color: #fff; border-radius: 2px 2px 0 0; box-sizing: border-box; pointer-events: none;}
+.layui-tab-bar{position: absolute; right: 0; top: 0; z-index: 10; width: 30px; height: 39px; line-height: 39px; border-width: 1px; border-style: solid; border-radius: 2px; text-align: center; background-color: #fff; cursor: pointer;}
 .layui-tab-bar .layui-icon{position: relative; display: inline-block; top: 3px; transition: all .3s; -webkit-transition: all .3s;}
 .layui-tab-item{display: none;}
 .layui-tab-more{padding-right: 30px; height: auto !important; white-space: normal !important;}
@@ -1402,6 +1392,7 @@ body .layui-table-tips .layui-layer-content{background: none; padding: 0; box-sh
 /* Tab 简洁风格 */.layui-tab-brief > .layui-tab-title .layui-this{color: #16baaa;}
 .layui-tab-brief > .layui-tab-title .layui-this:after
 ,.layui-tab-brief > .layui-tab-more li.layui-this:after{border: none; border-radius: 0; border-bottom: 2px solid #16b777;}
+.layui-tab-brief[overflow] > .layui-tab-title .layui-this:after{top: -1px;}
 
 /* Tab 卡片风格 */.layui-tab-card{border-width: 1px; border-style: solid; border-radius: 2px; box-shadow: 0 2px 5px 0 rgba(0,0,0,.1);}
 .layui-tab-card > .layui-tab-title{background-color: #fafafa;}
@@ -1514,7 +1505,7 @@ body .layui-util-face  .layui-layer-content{padding:0; background-color:#fff; co
 .layui-util-face ul li:hover{position: relative; z-index: 2; border: 1px solid #eb7350; background: #fff9ec;}
 
 /** 代码文本修饰 **/
-.layui-code{display: block; position: relative; padding: 15px; line-height: 20px; border: 1px solid #eee; border-left-width: 6px; background-color: #fff; color: #333; font-family: "Courier New",Consolas,"Lucida Console", monospace; font-size: 12px;}
+.layui-code{display: block; position: relative; padding: 15px; line-height: 20px; border: 1px solid #eee; border-left-width: 6px; background-color: #fff; color: #333; font-family: "Courier New",Consolas,"Lucida Console"; font-size: 12px;}
 
 /** 穿梭框 **/
 .layui-transfer-box,
